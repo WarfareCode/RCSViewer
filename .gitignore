@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+RCSViewer.vcxproj.user
+*.log
+*.tlog
+GeneratedFiles/Debug/moc_MainWindow.cpp
+GeneratedFiles/qrc_MainWindow.cpp
+GeneratedFiles/ui_MainWindow.h
+GeneratedFiles/ui_ViewerWidget.h
+Debug/vc120.pdb
