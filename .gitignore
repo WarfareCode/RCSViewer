@@ -38,3 +38,5 @@ GeneratedFiles/qrc_MainWindow.cpp
 GeneratedFiles/ui_MainWindow.h
 GeneratedFiles/ui_ViewerWidget.h
 Debug/vc120.pdb
+GeneratedFiles/Debug/moc_AeroRotateDlg.cpp
+GeneratedFiles/ui_AeroRotateDlg.h

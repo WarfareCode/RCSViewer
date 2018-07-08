@@ -12,6 +12,18 @@ public:
 	MainWindow(QWidget *parent = 0);
 	~MainWindow();
 
+public slots:
+
+	void slotSetManipulatorAeroplane();
+
+	void slotSetManipulatorTerrain();
+
+	void slotLoadAeroplane();
+
+	void slotLoadObservedObj();
+
+	void slotSetAeroplaneMatrix();
+
 private:
 	Ui::MainWindowClass ui;
 };
