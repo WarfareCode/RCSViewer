@@ -48,6 +48,11 @@ DataManager::DataManager()
 
 	m_dScale = 1.0;
 
+	m_pathCenter = osg::Vec3d(121.038, 23.613, 0.1);
+	m_dScale = 0.05;
+	m_pathRadius = 1.0;
+	m_dPathTime = 200.0;
+
 	m_pAerocraftLocalMatrixNode = new osg::MatrixTransform;
 	//pLocalRotate->setMatrix(osg::Matrix::rotate(osg::inDegrees(-90.0f), 0.0f, 0.0f, 1.0f));
 
@@ -63,17 +68,14 @@ DataManager::DataManager()
 	//创建位置变换节点pat1,缩放
 	m_pAerocraftAnimationNode = new osg::PositionAttitudeTransform;
 
-	m_pAerocraftAnimationNode->setPosition(osg::Vec3(121, 22.0f, 0.1f));
-	//pat1->setScale(osg::Vec3(0.01f, 0.01f, 0.01f));
+	m_pAerocraftAnimationNode->setPosition(osg::Vec3d(121, 22.0, 0.1));
+	m_pAerocraftAnimationNode->setScale(osg::Vec3(m_dScale, m_dScale, m_dScale));
 
 	m_pAerocraftAnimationNode->addChild(m_pAerocraftLocalMatrixNode);
 
-	osg::Vec3 center(121.038, 23.613, 0.1f);
-	osg::Vec3 scale(0.05f, 0.05f, 0.05f);
+	osg::Vec3d scale(m_dScale, m_dScale, m_dScale);
 
-	float radius = 1;
-	float animationLength = 200.0f;
-	osg::AnimationPath* animationPath = createAnimationPath(center, scale, radius, animationLength);
+	osg::AnimationPath* animationPath = createAnimationPath(m_pathCenter, scale, m_pathRadius, m_dPathTime);
 	m_pAerocraftAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPath, 0.0, 1.0));
 
 	m_pRoot->addChild(m_pAerocraftAnimationNode);
@@ -149,9 +151,14 @@ void DataManager::GetAerocraftRotate(float& x, float& y, float& z)
 	z = m_dRotateZ;
 }
 
-void DataManager::SetAerocraftScale(double scale)
+void DataManager::SetAerocraftScale(double dScale)
 {
-	m_dScale = scale;
+	m_dScale = dScale;
+	osg::Vec3d scale(m_dScale, m_dScale, m_dScale);
+	m_pAerocraftAnimationNode->setScale(osg::Vec3(m_dScale, m_dScale, m_dScale));
+
+	osg::AnimationPath* animationPath = createAnimationPath(m_pathCenter, scale, m_pathRadius, m_dPathTime);
+	m_pAerocraftAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPath, 0.0, 1.0));
 }
 
 double DataManager::GetAerocraftScale()

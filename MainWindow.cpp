@@ -3,6 +3,7 @@
 #include "ViewerWidget.h"
 #include <QtWidgets/QFileDialog>
 #include "DataManager.h"
+#include "AeroRotateDlg.h"
 
 extern osgViewer::View* g_pView;
 
@@ -81,5 +82,6 @@ void MainWindow::slotLoadObservedObj()
 
 void MainWindow::slotSetAeroplaneMatrix()
 {
-
+	AeroRotateDlg dlg;
+	dlg.exec();
 }

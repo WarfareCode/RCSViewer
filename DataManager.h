@@ -46,6 +46,11 @@ protected:
 	float m_dRotateY;
 	float m_dRotateZ;
 	double m_dScale;
+	osg::Vec3d m_pathCenter;
+	double m_pathRadius;
+	double m_dPathTime;
+	osg::Vec3d m_pathStartPoint;
+	osg::Vec3d m_pathEndPoint;
 
 	osg::PositionAttitudeTransform* m_pAerocraftAnimationNode;
 

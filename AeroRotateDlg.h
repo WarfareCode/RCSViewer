@@ -12,6 +12,11 @@ public:
 	AeroRotateDlg(QWidget *parent = 0);
 	~AeroRotateDlg();
 
+public slots:
+
+	void accept();
+	void reject();
+
 private:
 	Ui::AeroRotateDlg ui;
 };
