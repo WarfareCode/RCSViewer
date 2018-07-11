@@ -8,6 +8,12 @@ class DataManager
 {
 public:
 
+	enum PathType
+	{
+		PathType_Circle = 0,
+		PathType_Line = 1
+	};
+
 	static DataManager* Instance();
 
 	void LoadAerocraft(const QString& strFile);
@@ -32,6 +38,16 @@ public:
 
 	void LoadTerrain();
 
+	void SetCirclePathPara(const osg::Vec3d& vecCenter, double dRadius, double dTime);
+
+	void GetCirclePathPara(osg::Vec3d& vecCenter, double& dRadius, double& dTime);
+
+	void SetLinePathPara(const osg::Vec3d& vecStartPoint, const osg::Vec3d& vecEndPoint, double dTime);
+
+	void GetLinePathPara(osg::Vec3d& startPoint, osg::Vec3d& endPoint, double& dTime);
+
+	void SetPathType(PathType type);
+
 protected:
 
 	osg::Group* m_pRoot;
@@ -46,11 +62,12 @@ protected:
 	float m_dRotateY;
 	float m_dRotateZ;
 	double m_dScale;
-	osg::Vec3d m_pathCenter;
-	double m_pathRadius;
-	double m_dPathTime;
-	osg::Vec3d m_pathStartPoint;
-	osg::Vec3d m_pathEndPoint;
+	osg::Vec3d m_circleCenter;
+	double m_dCircleRadius;
+	double m_dCircleTime;
+	double m_dLineTime;
+	osg::Vec3d m_lineStartPoint;
+	osg::Vec3d m_lineEndPoint;
 
 	osg::PositionAttitudeTransform* m_pAerocraftAnimationNode;
 

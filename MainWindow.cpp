@@ -4,6 +4,8 @@
 #include <QtWidgets/QFileDialog>
 #include "DataManager.h"
 #include "AeroRotateDlg.h"
+#include <QtWidgets/QActionGroup>
+#include "PathSettingsDlg.h"
 
 extern osgViewer::View* g_pView;
 
@@ -22,17 +24,43 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(pActionLoadAeroplane, SIGNAL(triggered()), this, SLOT(slotLoadAeroplane()));
 	connect(pActionLoadObservedObj, SIGNAL(triggered()), this, SLOT(slotLoadObservedObj()));
 
-	QMenu* pMenuManipulator = menuBar()->addMenu(QString::fromLocal8Bit("视角"));
+	QMenu* pMenuManipulator = menuBar()->addMenu(QString::fromLocal8Bit("视角模式"));
 	QAction* pActionAero = pMenuManipulator->addAction(QString::fromLocal8Bit("飞行器"));
 	QAction* pActionTerrain = pMenuManipulator->addAction(QString::fromLocal8Bit("地面"));
+
+	pActionAero->setCheckable(true);
+	pActionAero->setChecked(true);
+	pActionTerrain->setCheckable(true);
+
+	QActionGroup* pActonGroup = new QActionGroup(pMenuManipulator);
+	pActonGroup->addAction(pActionAero);
+	pActonGroup->addAction(pActionTerrain);
 
 	connect(pActionAero, SIGNAL(triggered()), this, SLOT(slotSetManipulatorAeroplane()));
 	connect(pActionTerrain, SIGNAL(triggered()), this, SLOT(slotSetManipulatorTerrain()));
 
-	QMenu* pMenuSettings = menuBar()->addMenu(QString::fromLocal8Bit("设置"));
-	QAction* pActionAeroplanePos = pMenuSettings->addAction(QString::fromLocal8Bit("飞行器姿态"));
+	QMenu* pMenuSettings = menuBar()->addMenu(QString::fromLocal8Bit("飞行器姿态"));
+	QAction* pActionAeroplanePos = pMenuSettings->addAction(QString::fromLocal8Bit("参数设置"));
 
 	connect(pActionAeroplanePos, SIGNAL(triggered()), this, SLOT(slotSetAeroplaneMatrix()));
+
+	QMenu* pMenuAeroplanePath = menuBar()->addMenu(QString::fromLocal8Bit("飞行轨迹"));
+	QAction* pCirclePath = pMenuAeroplanePath->addAction(QString::fromLocal8Bit("环形"));
+	QAction* pLinePath = pMenuAeroplanePath->addAction(QString::fromLocal8Bit("直线"));
+	pMenuAeroplanePath->addSeparator();
+	QAction* pActionPathPara = pMenuAeroplanePath->addAction(QString::fromLocal8Bit("参数设置"));
+
+	pCirclePath->setCheckable(true);
+	pCirclePath->setChecked(true);
+	pLinePath->setCheckable(true);
+
+	QActionGroup* pActonGroup2 = new QActionGroup(pMenuAeroplanePath);
+	pActonGroup2->addAction(pCirclePath);
+	pActonGroup2->addAction(pLinePath);
+
+	connect(pCirclePath, SIGNAL(triggered()), this, SLOT(slotCirclePath()));
+	connect(pLinePath, SIGNAL(triggered()), this, SLOT(slotLinePath()));
+	connect(pActionPathPara, SIGNAL(triggered()), this, SLOT(slotPathPara()));
 
 #if QT_VERSION >= 0x050000
 	// Qt5 is currently crashing and reporting "Cannot make QOpenGLContext current in a different thread" when the viewer is run multi-threaded, this is regression from Qt4
@@ -52,11 +80,17 @@ MainWindow::~MainWindow()
 
 void MainWindow::slotSetManipulatorAeroplane()
 {
+	QAction* pAction = qobject_cast<QAction*>(sender());
+	pAction->setChecked(true);
+
 	SetNodeTrackerManipulator();
 }
 
 void MainWindow::slotSetManipulatorTerrain()
 {
+	QAction* pAction = qobject_cast<QAction*>(sender());
+	pAction->setChecked(true);
+
 	SetTerrainManipulator();
 }
 
@@ -83,5 +117,27 @@ void MainWindow::slotLoadObservedObj()
 void MainWindow::slotSetAeroplaneMatrix()
 {
 	AeroRotateDlg dlg;
+	dlg.exec();
+}
+
+void MainWindow::slotCirclePath()
+{
+	QAction* pAction = qobject_cast<QAction*>(sender());
+	pAction->setChecked(true);
+
+	DataManager::Instance()->SetPathType(DataManager::PathType_Circle);
+}
+
+void MainWindow::slotLinePath()
+{
+	QAction* pAction = qobject_cast<QAction*>(sender());
+	pAction->setChecked(true);
+
+	DataManager::Instance()->SetPathType(DataManager::PathType_Line);
+}
+
+void MainWindow::slotPathPara()
+{
+	PathSettingsDlg dlg;
 	dlg.exec();
 }

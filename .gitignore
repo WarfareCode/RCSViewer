@@ -40,3 +40,5 @@ GeneratedFiles/ui_ViewerWidget.h
 Debug/vc120.pdb
 GeneratedFiles/Debug/moc_AeroRotateDlg.cpp
 GeneratedFiles/ui_AeroRotateDlg.h
+GeneratedFiles/ui_PathSettingsDlg.h
+GeneratedFiles/Debug/moc_PathSettingsDlg.cpp

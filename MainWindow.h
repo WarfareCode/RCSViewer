@@ -24,6 +24,12 @@ public slots:
 
 	void slotSetAeroplaneMatrix();
 
+	void slotCirclePath();
+
+	void slotLinePath();
+
+	void slotPathPara();
+
 private:
 	Ui::MainWindowClass ui;
 };
