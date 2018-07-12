@@ -26,7 +26,7 @@ public:
 
 	double GetAerocraftScale();
 
-	void LoadObservedObject(const QString& strFile);
+	void LoadTargetObject(const QString& strFile);
 
 	osg::Node* GetAerocraftNode();
 
@@ -48,6 +48,12 @@ public:
 
 	void SetPathType(PathType type);
 
+	void GetTargetPara(double& dLon, double& dLat, double& dHeight, double& dRotateX
+		, double& dRotateY, double& dRotateZ, double& dScale);
+
+	void SetTargetPara(double dLon, double dLat, double dHeight, double dRotateX
+		, double dRotateY, double dRotateZ, double dScale);
+
 protected:
 
 	osg::Group* m_pRoot;
@@ -57,19 +63,47 @@ protected:
 	osg::Node* m_pTerrainNode;
 
 	osg::MatrixTransform* m_pAerocraftLocalMatrixNode;
+	osg::PositionAttitudeTransform* m_pAerocraftAnimationNode;
 
+	//飞行器局部旋转
 	float m_dRotateX;
 	float m_dRotateY;
 	float m_dRotateZ;
+
+	//飞行器缩放倍数
 	double m_dScale;
+
+	//环形路径中心
 	osg::Vec3d m_circleCenter;
+	//环形路径半径
 	double m_dCircleRadius;
+	//环形路径时间
 	double m_dCircleTime;
+
+	//直线路径时间
 	double m_dLineTime;
+	//直线路径起始点
 	osg::Vec3d m_lineStartPoint;
+	//直线路径终点
 	osg::Vec3d m_lineEndPoint;
 
-	osg::PositionAttitudeTransform* m_pAerocraftAnimationNode;
+
+	//目标节点
+	osg::Node* m_pTargetNode;
+
+	osg::Vec3d m_vTargetPos;
+
+	double m_dTargetRotateX;
+
+	double m_dTargetRotateY;
+
+	double m_dTargetRotateZ;
+
+	//目标局部旋转矩阵
+	osg::MatrixTransform* m_pTargetLocalMatrixNode;
+	osg::PositionAttitudeTransform* m_pTargetAnimationNode;
+	//目标缩放倍数
+	double m_dTargetScale;
 
 	DataManager();
 	virtual ~DataManager();

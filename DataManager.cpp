@@ -99,6 +99,16 @@ DataManager::DataManager()
 	m_pAerocraftAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPath, 0.0, 1.0));
 
 	m_pRoot->addChild(m_pAerocraftAnimationNode);
+
+	m_dTargetRotateX = 0.0;
+	m_dTargetRotateY = 0.0;
+	m_dTargetRotateZ = 0.0;
+	m_dTargetScale = 1.0;
+
+	m_pTargetLocalMatrixNode = new osg::MatrixTransform;
+	m_pTargetAnimationNode = new osg::PositionAttitudeTransform;
+	m_pTargetAnimationNode->addChild(m_pTargetLocalMatrixNode);
+	m_pRoot->addChild(m_pTargetAnimationNode);
 }
 
 DataManager::~DataManager()
@@ -186,12 +196,6 @@ double DataManager::GetAerocraftScale()
 	return m_dScale;
 }
 
-void DataManager::LoadObservedObject(const QString& strFile)
-{
-	// 		osgUtil::Optimizer optimzer;
-	// 		optimzer.optimize(rootnode);
-}
-
 osg::Node* DataManager::GetAerocraftNode()
 {
 	return m_pAerocraftNode;
@@ -259,4 +263,70 @@ void DataManager::SetPathType(PathType type)
 	}
 
 	m_pAerocraftAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPath, 0.0, 1.0));
+}
+
+void DataManager::GetTargetPara(double& dLon, double& dLat, double& dHeight, double& dRotateX
+	, double& dRotateY, double& dRotateZ, double& dScale)
+{
+	dLon = m_vTargetPos.x();
+	dLat = m_vTargetPos.y();
+	dHeight = m_vTargetPos.z();
+
+	dRotateX = m_dTargetRotateX;
+	dRotateY = m_dTargetRotateY;
+	dRotateZ = m_dTargetRotateZ;
+
+	dScale = m_dTargetScale;
+}
+
+void DataManager::SetTargetPara(double dLon, double dLat, double dHeight, double dRotateX
+	, double dRotateY, double dRotateZ, double dScale)
+{
+	m_vTargetPos.x() = dLon;
+	m_vTargetPos.y() = dLat;
+	m_vTargetPos.z() = dHeight;
+
+	m_dTargetRotateX = dRotateX;
+	m_dTargetRotateY = dRotateY;
+	m_dTargetRotateZ = dRotateZ;
+
+	m_dTargetScale = dScale;
+
+	m_pTargetLocalMatrixNode->setMatrix(osg::Matrix());
+
+	osg::Matrix matrixRotate;
+	matrixRotate.makeRotate(osg::inDegrees(m_dTargetRotateX), osg::Vec3f(1.0, 0.0, 0.0));
+
+	osg::Matrix matrixRotate2;
+	matrixRotate2.makeRotate(osg::inDegrees(m_dTargetRotateY), osg::Vec3f(0.0, 1.0, 0.0));
+
+	osg::Matrix matrixRotate3;
+	matrixRotate3.makeRotate(osg::inDegrees(m_dTargetRotateZ), osg::Vec3f(0.0, 0.0, 1.0));
+
+	m_pTargetLocalMatrixNode->postMult(matrixRotate);
+	m_pTargetLocalMatrixNode->postMult(matrixRotate2);
+	m_pTargetLocalMatrixNode->postMult(matrixRotate3);
+
+	m_pTargetAnimationNode->setPosition(m_vTargetPos);
+	m_pTargetAnimationNode->setScale(osg::Vec3d(m_dTargetScale, m_dTargetScale, m_dTargetScale));
+}
+
+void DataManager::LoadTargetObject(const QString& strFile)
+{
+	m_pTargetNode = osgDB::readNodeFile(strFile.toUtf8().data());
+
+	osgUtil::Optimizer optimzer;
+	optimzer.optimize(m_pTargetNode);
+
+	int nNumChild = m_pTargetLocalMatrixNode->getNumChildren();
+	if (nNumChild > 0)
+	{
+		osg::Node* pNode = m_pTargetLocalMatrixNode->getChild(0);
+		m_pTargetLocalMatrixNode->removeChild(pNode);
+	}
+
+	m_pTargetLocalMatrixNode->addChild(m_pTargetNode);
+
+	// 		osgUtil::Optimizer optimzer;
+	// 		optimzer.optimize(rootnode);
 }

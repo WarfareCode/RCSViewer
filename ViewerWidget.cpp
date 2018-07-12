@@ -52,12 +52,6 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 
 	QWidget* widget1 = gw->getGLWidget();
 
-	//         QWidget* widget2 = addViewWidget( createGraphicsWindow(0,0,100,100), osgDB::readNodeFile("glider.osgt") );
-	//         QWidget* widget3 = addViewWidget( createGraphicsWindow(0,0,100,100), osgDB::readNodeFile("axes.osgt") );
-	//         QWidget* widget4 = addViewWidget( createGraphicsWindow(0,0,100,100), osgDB::readNodeFile("fountain.osgt") );
-	//         QWidget* popupWidget = addViewWidget( createGraphicsWindow(900,100,320,240,"Popup window",true), osgDB::readNodeFile("dumptruck.osgt") );
-	//         popupWidget->show();
-
 	QGridLayout* grid = new QGridLayout;
 	grid->addWidget(widget1, 0, 0);
 	//      grid->addWidget( widget2, 0, 1 );
@@ -67,29 +61,6 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
 	_timer.start(10);
-}
-
-QWidget* ViewerWidget::addViewWidget(osgQt::GraphicsWindowQt* gw, osg::Node* scene, osg::Node* pNode)
-{
-	osgViewer::View* view = new osgViewer::View;
-	addView(view);
-
-	osg::Camera* camera = view->getCamera();
-	camera->setGraphicsContext(gw);
-
-	const osg::GraphicsContext::Traits* traits = gw->getTraits();
-
-	camera->setClearColor(osg::Vec4(0.2, 0.2, 0.6, 1.0));
-	camera->setViewport(new osg::Viewport(0, 0, traits->width, traits->height));
-	camera->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(traits->width) / static_cast<double>(traits->height), 1.0f, 10000.0f);
-
-	view->setSceneData(scene);
-	view->addEventHandler(new osgViewer::StatsHandler);
-	osgGA::TerrainManipulator* pManipulator = new osgGA::TerrainManipulator;
-	pManipulator->setNode(pNode);
-	view->setCameraManipulator(pManipulator/*new osgGA::TrackballManipulator*/);
-
-	return gw->getGLWidget();
 }
 
 osgQt::GraphicsWindowQt* ViewerWidget::createGraphicsWindow(int x, int y, int w, int h, const std::string& name, bool windowDecoration)

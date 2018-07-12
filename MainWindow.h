@@ -30,6 +30,8 @@ public slots:
 
 	void slotPathPara();
 
+	void slotTargetPara();
+
 private:
 	Ui::MainWindowClass ui;
 };

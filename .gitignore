@@ -42,3 +42,5 @@ GeneratedFiles/Debug/moc_AeroRotateDlg.cpp
 GeneratedFiles/ui_AeroRotateDlg.h
 GeneratedFiles/ui_PathSettingsDlg.h
 GeneratedFiles/Debug/moc_PathSettingsDlg.cpp
+GeneratedFiles/Debug/moc_TargetSettingsDlg.cpp
+GeneratedFiles/ui_TargetSettingsDlg.h

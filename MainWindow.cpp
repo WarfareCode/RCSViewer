@@ -6,11 +6,22 @@
 #include "AeroRotateDlg.h"
 #include <QtWidgets/QActionGroup>
 #include "PathSettingsDlg.h"
+#include "TargetSettingsDlg.h"
+#include <QtWidgets/QDockWidget>
 
 extern osgViewer::View* g_pView;
 
 void SetTerrainManipulator();
 void SetNodeTrackerManipulator();
+
+class MyWidget : public QWidget
+{
+public:
+	QSize sizeHint() const
+	{
+		return QSize(400, 900); /* 在这里定义dock的初始大小 */
+	}
+};
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -62,12 +73,25 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(pLinePath, SIGNAL(triggered()), this, SLOT(slotLinePath()));
 	connect(pActionPathPara, SIGNAL(triggered()), this, SLOT(slotPathPara()));
 
+	QMenu* pMenuTargetSettings = menuBar()->addMenu(QString::fromLocal8Bit("目标参数"));
+	QAction* pActionTargetSettings = pMenuTargetSettings->addAction(QString::fromLocal8Bit("设置"));
+
+	connect(pActionTargetSettings, SIGNAL(triggered()), this, SLOT(slotTargetPara()));
+
 #if QT_VERSION >= 0x050000
 	// Qt5 is currently crashing and reporting "Cannot make QOpenGLContext current in a different thread" when the viewer is run multi-threaded, this is regression from Qt4
 	osgViewer::ViewerBase::ThreadingModel threadingModel = osgViewer::ViewerBase::SingleThreaded;
 #else
 	osgViewer::ViewerBase::ThreadingModel threadingModel = osgViewer::ViewerBase::CullDrawThreadPerContext;
 #endif
+
+// 	QDockWidget* pDockWidget = new QDockWidget;
+// 	pDockWidget->setWidget(new MyWidget);
+// 	addDockWidget(Qt::DockWidgetArea::NoDockWidgetArea, pDockWidget);
+// 
+// 	QDockWidget* pDockWidget2 = new QDockWidget;
+// 	pDockWidget2->setWidget(new MyWidget);
+// 	addDockWidget(Qt::DockWidgetArea::NoDockWidgetArea, pDockWidget2);
 
 	ViewerWidget* viewWidget = new ViewerWidget(threadingModel);
 	setCentralWidget(viewWidget);
@@ -111,7 +135,11 @@ void MainWindow::slotLoadAeroplane()
 
 void MainWindow::slotLoadObservedObj()
 {
+	QString strFileName = QFileDialog::getOpenFileName();
+	if (strFileName.isEmpty())
+		return;
 
+	DataManager::Instance()->LoadTargetObject(strFileName);
 }
 
 void MainWindow::slotSetAeroplaneMatrix()
@@ -139,5 +167,11 @@ void MainWindow::slotLinePath()
 void MainWindow::slotPathPara()
 {
 	PathSettingsDlg dlg;
+	dlg.exec();
+}
+
+void MainWindow::slotTargetPara()
+{
+	TargetSettingsDlg dlg;
 	dlg.exec();
 }
