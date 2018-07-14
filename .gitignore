@@ -44,3 +44,5 @@ GeneratedFiles/ui_PathSettingsDlg.h
 GeneratedFiles/Debug/moc_PathSettingsDlg.cpp
 GeneratedFiles/Debug/moc_TargetSettingsDlg.cpp
 GeneratedFiles/ui_TargetSettingsDlg.h
+GeneratedFiles/Debug/moc_RadarBeamRotateDlg.cpp
+GeneratedFiles/ui_RadarBeamRotateDlg.h

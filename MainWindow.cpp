@@ -8,6 +8,7 @@
 #include "PathSettingsDlg.h"
 #include "TargetSettingsDlg.h"
 #include <QtWidgets/QDockWidget>
+#include "RadarBeamRotateDlg.h"
 
 extern osgViewer::View* g_pView;
 
@@ -77,6 +78,11 @@ MainWindow::MainWindow(QWidget *parent)
 	QAction* pActionTargetSettings = pMenuTargetSettings->addAction(QString::fromLocal8Bit("设置"));
 
 	connect(pActionTargetSettings, SIGNAL(triggered()), this, SLOT(slotTargetPara()));
+
+	QMenu* pMenuRadarBeamSettings = menuBar()->addMenu(QString::fromLocal8Bit("波束方向"));
+	QAction* pActionRadarBeamSettings = pMenuRadarBeamSettings->addAction(QString::fromLocal8Bit("设置"));
+
+	connect(pActionRadarBeamSettings, SIGNAL(triggered()), this, SLOT(slotRadarBeamPara()));
 
 #if QT_VERSION >= 0x050000
 	// Qt5 is currently crashing and reporting "Cannot make QOpenGLContext current in a different thread" when the viewer is run multi-threaded, this is regression from Qt4
@@ -173,5 +179,11 @@ void MainWindow::slotPathPara()
 void MainWindow::slotTargetPara()
 {
 	TargetSettingsDlg dlg;
+	dlg.exec();
+}
+
+void MainWindow::slotRadarBeamPara()
+{
+	RadarBeamRotateDlg dlg;
 	dlg.exec();
 }

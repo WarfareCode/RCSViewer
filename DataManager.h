@@ -28,11 +28,22 @@ public:
 
 	void LoadTargetObject(const QString& strFile);
 
+	//加载雷达波
+	void LoadRadarBeam(const QString& strFile);
+
+	void SetRadarBeamLocalMatrix(double dOffsetX, double dOffsetY, double dOffsetZ, double dRotateX
+		, double dRotateY, double dRotateZ, double dScale);
+
+	void GetRadarBeamLocalMatrix(double& dOffsetX, double& dOffsetY, double& dOffsetZ, double& dRotateX
+		, double& dRotateY, double& dRotateZ, double& dScale);
+
 	osg::Node* GetAerocraftNode();
 
 	osg::Node* GetObservedObjectNode();
 
 	osg::Node* GetTerrainNode();
+
+	osg::Node* GetRadarBeamNode();
 
 	osg::Node* GetRootNode();
 
@@ -104,6 +115,21 @@ protected:
 	osg::PositionAttitudeTransform* m_pTargetAnimationNode;
 	//目标缩放倍数
 	double m_dTargetScale;
+
+	//雷达波模型
+	osg::Node* m_pRadarBeamNode;
+
+	//雷达波局部矩阵的位移和旋转
+	double m_dRadarOffsetX;
+	double m_dRadarOffsetY;
+	double m_dRadarOffsetZ;
+	double m_dRadarRotateX;
+	double m_dRadarRotateY;
+	double m_dRadarRotateZ;
+
+	double m_dRadarScale;
+
+	osg::MatrixTransform* m_pRadarBeamLocalMatrixNode;
 
 	DataManager();
 	virtual ~DataManager();

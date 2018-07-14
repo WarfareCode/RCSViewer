@@ -109,6 +109,22 @@ DataManager::DataManager()
 	m_pTargetAnimationNode = new osg::PositionAttitudeTransform;
 	m_pTargetAnimationNode->addChild(m_pTargetLocalMatrixNode);
 	m_pRoot->addChild(m_pTargetAnimationNode);
+
+	m_pRadarBeamNode = nullptr;
+
+	//雷达波局部矩阵的位移和旋转
+	m_dRadarOffsetX = 0.0;
+	m_dRadarOffsetY = 0.0;
+	m_dRadarOffsetZ = 0.0;
+	m_dRadarRotateX = 0.0;
+	m_dRadarRotateY = 0.0;
+	m_dRadarRotateZ = 0.0;
+
+	m_dRadarScale = 1.0;
+
+	m_pRadarBeamLocalMatrixNode = new osg::MatrixTransform;
+	m_pTargetAnimationNode->addChild(m_pRadarBeamLocalMatrixNode);
+
 }
 
 DataManager::~DataManager()
@@ -329,4 +345,71 @@ void DataManager::LoadTargetObject(const QString& strFile)
 
 	// 		osgUtil::Optimizer optimzer;
 	// 		optimzer.optimize(rootnode);
+}
+
+void DataManager::LoadRadarBeam(const QString& strFile)
+{
+	m_pRadarBeamNode = osgDB::readNodeFile(strFile.toUtf8().data());
+
+	osgUtil::Optimizer optimzer;
+	optimzer.optimize(m_pRadarBeamNode);
+
+	int nNumChild = m_pRadarBeamLocalMatrixNode->getNumChildren();
+	if (nNumChild > 0)
+	{
+		osg::Node* pNode = m_pRadarBeamLocalMatrixNode->getChild(0);
+		m_pRadarBeamLocalMatrixNode->removeChild(pNode);
+	}
+
+	m_pRadarBeamLocalMatrixNode->addChild(m_pRadarBeamNode);
+}
+
+void DataManager::SetRadarBeamLocalMatrix(double dOffsetX, double dOffsetY, double dOffsetZ, double dRotateX
+	, double dRotateY, double dRotateZ, double dScale)
+{
+	m_dRadarOffsetX = dOffsetX;
+	m_dRadarOffsetY = dOffsetY;
+	m_dRadarOffsetZ = dOffsetZ;
+
+	m_dRadarRotateX = dRotateX;
+	m_dRadarRotateY = dRotateY;
+	m_dRadarRotateZ = dRotateZ;
+
+	m_dRadarScale = dScale;
+
+	m_pRadarBeamLocalMatrixNode->setMatrix(osg::Matrix());
+
+	osg::Matrix matrixRotate;
+	matrixRotate.makeRotate(osg::inDegrees(m_dRadarRotateX), osg::Vec3f(1.0, 0.0, 0.0));
+
+	osg::Matrix matrixRotate2;
+	matrixRotate2.makeRotate(osg::inDegrees(m_dRadarRotateY), osg::Vec3f(0.0, 1.0, 0.0));
+
+	osg::Matrix matrixRotate3;
+	matrixRotate3.makeRotate(osg::inDegrees(m_dRadarRotateZ), osg::Vec3f(0.0, 0.0, 1.0));
+
+	osg::Matrix matrixRotate4;
+	matrixRotate4.makeTranslate(osg::Vec3d(m_dRadarOffsetX, m_dRadarOffsetY, m_dRadarOffsetZ));
+
+	m_pTargetLocalMatrixNode->postMult(matrixRotate);
+	m_pTargetLocalMatrixNode->postMult(matrixRotate2);
+	m_pTargetLocalMatrixNode->postMult(matrixRotate3);
+	m_pTargetLocalMatrixNode->postMult(matrixRotate4);
+
+	m_pTargetAnimationNode->setPosition(m_vTargetPos);
+	m_pTargetAnimationNode->setScale(osg::Vec3d(m_dTargetScale, m_dTargetScale, m_dTargetScale));
+}
+
+void DataManager::GetRadarBeamLocalMatrix(double& dOffsetX, double& dOffsetY, double& dOffsetZ, double& dRotateX
+	, double& dRotateY, double& dRotateZ, double& dScale)
+{
+	dOffsetX = m_dRadarOffsetX;
+	dOffsetY = m_dRadarOffsetY;
+	dOffsetZ = m_dRadarOffsetZ;
+
+	dRotateX = m_dRadarRotateX;
+	dRotateY = m_dRadarRotateY;
+	dRotateZ = m_dRadarRotateZ;
+
+	dScale = m_dRadarScale;
 }

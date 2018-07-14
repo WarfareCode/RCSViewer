@@ -32,6 +32,8 @@ public slots:
 
 	void slotTargetPara();
 
+	void slotRadarBeamPara();
+
 private:
 	Ui::MainWindowClass ui;
 };
