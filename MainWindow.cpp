@@ -5,6 +5,8 @@
 #include "DataManager.h"
 #include "AeroRotateDlg.h"
 #include <QtWidgets/QActionGroup>
+#include <QtMultimedia/QMediaPlayer>
+#include <QtMultimediaWidgets/QVideoWidget>
 #include "PathSettingsDlg.h"
 #include "TargetSettingsDlg.h"
 #include <QtWidgets/QDockWidget>
@@ -15,14 +17,14 @@ extern osgViewer::View* g_pView;
 void SetTerrainManipulator();
 void SetNodeTrackerManipulator();
 
-class MyWidget : public QWidget
-{
-public:
-	QSize sizeHint() const
-	{
-		return QSize(400, 900); /* 在这里定义dock的初始大小 */
-	}
-};
+// class MyWidget : public QWidget
+// {
+// public:
+// 	QSize sizeHint() const
+// 	{
+// 		return QSize(400, 900); /* 在这里定义dock的初始大小 */
+// 	}
+// };
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -91,16 +93,25 @@ MainWindow::MainWindow(QWidget *parent)
 	osgViewer::ViewerBase::ThreadingModel threadingModel = osgViewer::ViewerBase::CullDrawThreadPerContext;
 #endif
 
-// 	QDockWidget* pDockWidget = new QDockWidget;
-// 	pDockWidget->setWidget(new MyWidget);
-// 	addDockWidget(Qt::DockWidgetArea::NoDockWidgetArea, pDockWidget);
-// 
-// 	QDockWidget* pDockWidget2 = new QDockWidget;
-// 	pDockWidget2->setWidget(new MyWidget);
-// 	addDockWidget(Qt::DockWidgetArea::NoDockWidgetArea, pDockWidget2);
-
 	ViewerWidget* viewWidget = new ViewerWidget(threadingModel);
 	setCentralWidget(viewWidget);
+
+	QDockWidget* pDockWidget = new QDockWidget;
+	QMediaPlayer* player = new QMediaPlayer;
+	QVideoWidget* vw = new QVideoWidget;
+	pDockWidget->setWidget(vw);
+	vw->show();
+	player->setVideoOutput(vw);
+	player->setMedia(QUrl::fromLocalFile("c:/a/20171102104126.mp4"));
+	player->play();
+	
+	addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, pDockWidget);
+	//pDockWidget->setFloating(true);
+
+	QDockWidget* pDockWidget2 = new QDockWidget;
+	//pDockWidget2->setWidget(new MyWidget);
+	addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, pDockWidget2);
+	//pDockWidget2->setFloating(true);
 }
 
 MainWindow::~MainWindow()

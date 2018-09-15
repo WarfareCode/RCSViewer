@@ -51,6 +51,9 @@ osg::AnimationPath* createCircleAnimationPath(const osg::Vec3d& center, const os
 DataManager::DataManager()
 {
 	m_pRoot = new osg::Group;
+	osg::StateSet* pStateSet = m_pRoot->getOrCreateStateSet();
+	//pStateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+
 	m_pAerocraftNode = nullptr;
 	m_pTerrainNode = nullptr;
 
@@ -58,10 +61,8 @@ DataManager::DataManager()
 	m_dRotateY = 180.0f;
 	m_dRotateZ = 270.0f;
 
-	m_dScale = 1.0;
-
 	m_circleCenter = osg::Vec3d(121.038, 23.613, 0.1);
-	m_dScale = 0.05;
+	m_dScale = 0.0005;
 	m_dCircleRadius = 1.0;
 	m_dCircleTime = 200.0;
 
@@ -145,15 +146,32 @@ void DataManager::LoadTerrain()
 {
 	if (m_pTerrainNode == nullptr)
 	{
-		m_pTerrainNode = osgDB::readNodeFile("D:/osg3.2.0/taiwan/iso.ive");
+		osg::Group* pTerrainGroup = new osg::Group;
+		m_pTerrainNode = pTerrainGroup;
 		m_pRoot->addChild(m_pTerrainNode);
+
+		//m_pTerrainNode = osgDB::readNodeFile("D:/rcsmodel/qiemo.ive"/*"D:/L19/ttt.ive"*//*"D:/osg3.2.0/taiwan/iso.ive"*/);
+		//m_pRoot->addChild(osgDB::readNodeFile("D:/osg3.2.0/taiwan/iso.ive"));
+		//m_pRoot->addChild(osgDB::readNodeFile("D:/rcsmodel/ooo.ive"));
+
+		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/dunhuang.ive"));
+		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/dunhuang(mubiaoqu).ive"));
+		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/dunhuang3.ive"));
+		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/hami(jichangqu).ive"));
+		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/hami(mubiaoqu).ive"));
+		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/jinzhou.ive"));
+		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/kuerle.ive"));
+		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/liaoningchaoyang.ive"));
+		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/qiemo.ive"));
+		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/xilinhaote.ive"));
+		pTerrainGroup->addChild(osgDB::readNodeFile("D:/osg3.2.0/taiwan/iso.ive"));
 	}
 }
 
 void DataManager::LoadAerocraft(const QString& strFile)
 {
 	//m_pAerocraftNode = osgDB::readNodeFile("glider.osg"/*"su27.IVE"*/); 
-	m_pAerocraftNode = osgDB::readNodeFile(strFile.toUtf8().data()/*"su27.IVE"*/);
+	m_pAerocraftNode = osgDB::readNodeFile(strFile.toLocal8Bit().data()/*"su27.IVE"*/);
 
 	osgUtil::Optimizer optimzer;
 	optimzer.optimize(m_pAerocraftNode);
@@ -329,7 +347,7 @@ void DataManager::SetTargetPara(double dLon, double dLat, double dHeight, double
 
 void DataManager::LoadTargetObject(const QString& strFile)
 {
-	m_pTargetNode = osgDB::readNodeFile(strFile.toUtf8().data());
+	m_pTargetNode = osgDB::readNodeFile(strFile.toLocal8Bit().data());
 
 	osgUtil::Optimizer optimzer;
 	optimzer.optimize(m_pTargetNode);

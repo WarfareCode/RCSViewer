@@ -43,12 +43,19 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 
 	DataManager* pManager = DataManager::Instance();
 	pManager->LoadTerrain();
-	pManager->LoadAerocraft("c:/a/zz.FBX");
+	pManager->LoadAerocraft("c:/a/plane.FBX");
 
 	view->setSceneData(pManager->GetRootNode());
 	view->addEventHandler(new osgViewer::StatsHandler);
 
+	view->getLight()->setPosition(osg::Vec4(1.0f, 1.0f, 1.0f, 0.0f));
+	// 环境光
+	view->getLight()->setAmbient(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	// 漫反射光
+	view->getLight()->setDiffuse(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
 	SetNodeTrackerManipulator();
+	//SetTerrainManipulator();
 
 	QWidget* widget1 = gw->getGLWidget();
 
