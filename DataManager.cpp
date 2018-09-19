@@ -154,8 +154,8 @@ void DataManager::LoadTerrain()
 		//m_pRoot->addChild(osgDB::readNodeFile("D:/osg3.2.0/taiwan/iso.ive"));
 		//m_pRoot->addChild(osgDB::readNodeFile("D:/rcsmodel/ooo.ive"));
 
-		pTerrainGroup->addChild(osgDB::readNodeFile("D:/L19/world.ive"));
-		return;
+// 		pTerrainGroup->addChild(osgDB::readNodeFile("D:/L19/world.ive"));
+// 		return;
 
 		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/dunhuang.ive"));
 		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/dunhuang(mubiaoqu).ive"));
