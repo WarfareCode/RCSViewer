@@ -92,6 +92,15 @@
     <ClCompile Include="GeneratedFiles\Release\moc_RadarBeamRotateDlg.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="videoplayer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_videoplayer.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_videoplayer.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.h">
@@ -132,6 +141,9 @@
     </CustomBuild>
     <CustomBuild Include="RadarBeamRotateDlg.ui">
       <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="videoplayer.h">
+      <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

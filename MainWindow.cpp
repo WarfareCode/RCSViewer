@@ -11,6 +11,7 @@
 #include "TargetSettingsDlg.h"
 #include <QtWidgets/QDockWidget>
 #include "RadarBeamRotateDlg.h"
+#include "videoplayer.h"
 
 extern osgViewer::View* g_pView;
 
@@ -97,16 +98,11 @@ MainWindow::MainWindow(QWidget *parent)
 	setCentralWidget(viewWidget);
 
 	QDockWidget* pDockWidget = new QDockWidget;
-	QMediaPlayer* player = new QMediaPlayer;
-	QVideoWidget* vw = new QVideoWidget;
-	pDockWidget->setWidget(vw);
-	vw->show();
-	player->setVideoOutput(vw);
-	player->setMedia(QUrl::fromLocalFile("c:/a/20171102104126.mp4"));
-	player->play();
+ 	VideoPlayer* pPlayer = new VideoPlayer;
+ 	pDockWidget->setWidget(pPlayer);
 	
 	addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, pDockWidget);
-	//pDockWidget->setFloating(true);
+	pDockWidget->setFloating(true);
 
 	QDockWidget* pDockWidget2 = new QDockWidget;
 	//pDockWidget2->setWidget(new MyWidget);

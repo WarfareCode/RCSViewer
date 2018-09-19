@@ -63,7 +63,7 @@ DataManager::DataManager()
 
 	m_circleCenter = osg::Vec3d(121.038, 23.613, 0.1);
 	m_dScale = 0.0005;
-	m_dCircleRadius = 1.0;
+	m_dCircleRadius = 0.8;
 	m_dCircleTime = 200.0;
 
 	m_lineStartPoint = osg::Vec3d(120.038, 23.613, 0.1);
@@ -153,6 +153,9 @@ void DataManager::LoadTerrain()
 		//m_pTerrainNode = osgDB::readNodeFile("D:/rcsmodel/qiemo.ive"/*"D:/L19/ttt.ive"*//*"D:/osg3.2.0/taiwan/iso.ive"*/);
 		//m_pRoot->addChild(osgDB::readNodeFile("D:/osg3.2.0/taiwan/iso.ive"));
 		//m_pRoot->addChild(osgDB::readNodeFile("D:/rcsmodel/ooo.ive"));
+
+		pTerrainGroup->addChild(osgDB::readNodeFile("D:/L19/world.ive"));
+		return;
 
 		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/dunhuang.ive"));
 		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/dunhuang(mubiaoqu).ive"));

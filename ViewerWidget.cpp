@@ -17,6 +17,7 @@ void SetNodeTrackerManipulator()
 	osgGA::NodeTrackerManipulator* pManipulator = new osgGA::NodeTrackerManipulator;
 	pManipulator->setTrackNode(pManager->GetAerocraftNode());
 	g_pView->setCameraManipulator(pManipulator/*new osgGA::TrackballManipulator*/);
+	pManipulator->setMinimumDistance(0.002);
 }
 
 ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel) : QWidget()
