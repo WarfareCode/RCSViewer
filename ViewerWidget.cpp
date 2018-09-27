@@ -1,7 +1,46 @@
 #include "ViewerWidget.h"
 #include "DataManager.h"
+#include <osgDB/ReadFile>
+#include <osgDB/FileNameUtils>
+
+#include <osgOcean/OceanScene>
+#include <osgOcean/Version>
+#include <osgOcean/ShaderManager>
+
+#include "Scene.h"
 
 osgViewer::View* g_pView = nullptr;
+
+osg::ref_ptr<osg::TextureCubeMap> loadCubeMapTextures(const std::string& dir)
+{
+	enum { POS_X, NEG_X, POS_Y, NEG_Y, POS_Z, NEG_Z };
+
+	std::string filenames[6];
+
+	filenames[POS_X] = "textures/" + dir + "/east.png";
+	filenames[NEG_X] = "textures/" + dir + "/west.png";
+	filenames[POS_Z] = "textures/" + dir + "/north.png";
+	filenames[NEG_Z] = "textures/" + dir + "/south.png";
+	filenames[POS_Y] = "textures/" + dir + "/down.png";
+	filenames[NEG_Y] = "textures/" + dir + "/up.png";
+
+	osg::ref_ptr<osg::TextureCubeMap> cubeMap = new osg::TextureCubeMap;
+	cubeMap->setInternalFormat(GL_RGBA);
+
+	cubeMap->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
+	cubeMap->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+	cubeMap->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
+	cubeMap->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE);
+
+	cubeMap->setImage(osg::TextureCubeMap::NEGATIVE_X, osgDB::readImageFile(filenames[NEG_X]));
+	cubeMap->setImage(osg::TextureCubeMap::POSITIVE_X, osgDB::readImageFile(filenames[POS_X]));
+	cubeMap->setImage(osg::TextureCubeMap::NEGATIVE_Y, osgDB::readImageFile(filenames[NEG_Y]));
+	cubeMap->setImage(osg::TextureCubeMap::POSITIVE_Y, osgDB::readImageFile(filenames[POS_Y]));
+	cubeMap->setImage(osg::TextureCubeMap::NEGATIVE_Z, osgDB::readImageFile(filenames[NEG_Z]));
+	cubeMap->setImage(osg::TextureCubeMap::POSITIVE_Z, osgDB::readImageFile(filenames[POS_Z]));
+
+	return cubeMap;
+}
 
 void SetTerrainManipulator()
 {
@@ -45,6 +84,40 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 	DataManager* pManager = DataManager::Instance();
 	pManager->LoadTerrain();
 	pManager->LoadAerocraft("c:/a/plane.FBX");
+
+	{
+		osg::ref_ptr<osgOcean::FFTOceanSurface> surface = new osgOcean::FFTOceanSurface(64, 256, 17
+			, osg::Vec2(1.1f, 1.1f), 12, 10, 0.8, 1e-8, true, 2.5, 20.0, 256);
+		surface->setFoamBottomHeight(2.2);
+		surface->setFoamTopHeight(3.0);
+		surface->enableCrestFoam(true);
+
+		osg::PositionAttitudeTransform* pTransform = new osg::PositionAttitudeTransform;
+		pTransform->addChild(surface.get());
+		pTransform->setScale(osg::Vec3d(0.001, 0.001, 0.001));
+		pTransform->setPosition(osg::Vec3d(121.1, 23.7, -0.004));
+
+		osg::Group* pRoot = dynamic_cast<osg::Group*>(pManager->GetRootNode());
+		pRoot->addChild(pTransform);
+	}
+
+	//Ìì¿ÕºÐ
+	if (0)
+	{
+		std::vector<std::string> _cubemapDirs;
+		_cubemapDirs.push_back("sky_clear");
+		_cubemapDirs.push_back("sky_dusk");
+		_cubemapDirs.push_back("sky_fair_cloudy");
+
+		osg::ref_ptr<osg::TextureCubeMap> _cubemap;
+		_cubemap = loadCubeMapTextures(_cubemapDirs[0]);
+
+		osg::ref_ptr<SkyDome> _skyDome;
+		_skyDome = new SkyDome(1900.f, 16, 16, _cubemap.get());
+
+		osg::Group* pRoot = dynamic_cast<osg::Group*>(pManager->GetRootNode());
+		pRoot->addChild(_skyDome);
+	}
 
 	view->setSceneData(pManager->GetRootNode());
 	view->addEventHandler(new osgViewer::StatsHandler);

@@ -6,6 +6,24 @@
 #include <osg/Geode>
 #include <osgDB/ReadFile>
 #include <osgUtil/Optimizer>
+#include <osg/BlendFunc>
+
+static char * vertexShader = {
+	"void main(void ){\n"
+	"gl_TexCoord[0] = gl_MultiTexCoord0;\n"
+	"gl_Position = gl_ModelViewProjectionMatrix*gl_Vertex;\n"
+	"}\n"
+};
+static char * fragShader = {
+	"uniform sampler2D sampler0;\n"
+	"uniform vec4 mcolor;\n"
+	"void main(void){\n"
+	"gl_FragColor = texture2D(sampler0, gl_TexCoord[0].st);\n"
+	"if(gl_FragColor.r < 0.1)\n"
+	"gl_FragColor.a = 0.0;\n"
+
+	"}\n"
+};
 
 DataManager* g_DataManager = nullptr;
 
@@ -154,8 +172,38 @@ void DataManager::LoadTerrain()
 		//m_pRoot->addChild(osgDB::readNodeFile("D:/osg3.2.0/taiwan/iso.ive"));
 		//m_pRoot->addChild(osgDB::readNodeFile("D:/rcsmodel/ooo.ive"));
 
-// 		pTerrainGroup->addChild(osgDB::readNodeFile("D:/L19/world.ive"));
-// 		return;
+		osg::Node* pNode = osgDB::readNodeFile("D:/c/taiwan.ive");
+		pTerrainGroup->addChild(pNode);
+
+		if (1)
+		{
+			osg::StateSet * ss = pNode->getOrCreateStateSet();
+
+// 			osg::ref_ptr<osg::BlendFunc>blendFunc = new osg::BlendFunc();
+// 			blendFunc->setSource(osg::BlendFunc::SRC_ALPHA);
+// 			blendFunc->setDestination(osg::BlendFunc::ONE_MINUS_CONSTANT_ALPHA);
+// 			ss->setAttributeAndModes(blendFunc);
+// 			ss->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);//取消深度测试
+			if (1)
+			{
+				osg::Program * program = new osg::Program;
+				program->addShader(new osg::Shader(osg::Shader::FRAGMENT, fragShader));
+				program->addShader(new osg::Shader(osg::Shader::VERTEX, vertexShader));
+
+				osg::ref_ptr<osg::Uniform> sampler0 = new osg::Uniform("sampler0", 0);
+				ss->addUniform(sampler0.get());
+
+				osg::ref_ptr<osg::Uniform> mcolor = new osg::Uniform("mcolor", osg::Vec4(1.0, 0.0, 0.0, 0.1));
+				//mcolor->setUpdateCallback(new MColorCallback(dTime));
+				ss->addUniform(mcolor.get());
+
+				ss->setAttributeAndModes(program, osg::StateAttribute::OVERRIDE);
+				ss->setMode(GL_BLEND, osg::StateAttribute::ON);
+				ss->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+			}
+		}
+
+		return;
 
 		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/dunhuang.ive"));
 		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/dunhuang(mubiaoqu).ive"));
