@@ -2,6 +2,7 @@
 #include "DataManager.h"
 #include <osgDB/ReadFile>
 #include <osgDB/FileNameUtils>
+#include <osg/CullSettings>
 
 #include <osgOcean/OceanScene>
 #include <osgOcean/Version>
@@ -10,6 +11,26 @@
 #include "Scene.h"
 
 osgViewer::View* g_pView = nullptr;
+
+class CameraTrackCallback : public osg::NodeCallback
+{
+public:
+	virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
+	{
+		if (nv->getVisitorType() == osg::NodeVisitor::CULL_VISITOR)
+		{
+			osgUtil::CullVisitor* cv = static_cast<osgUtil::CullVisitor*>(nv);
+			osg::Vec3f centre, up, eye;
+			// get MAIN camera eye,centre,up
+			cv->getRenderStage()->getCamera()->getViewMatrixAsLookAt(eye, centre, up);
+			// update position
+			osg::MatrixTransform* mt = static_cast<osg::MatrixTransform*>(node);
+			mt->setMatrix(osg::Matrix::translate(eye.x(), eye.y(), mt->getMatrix().getTrans().z()));
+		}
+
+		traverse(node, nv);
+	}
+};
 
 osg::ref_ptr<osg::TextureCubeMap> loadCubeMapTextures(const std::string& dir)
 {
@@ -81,6 +102,10 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 	camera->setViewport(new osg::Viewport(0, 0, traits->width, traits->height));
 	camera->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(traits->width) / static_cast<double>(traits->height), 1.0f, 10000.0f);
 
+	//camera->setComputeNearFarMode(osg::CullSettings::COMPUTE_NEAR_FAR_USING_PRIMITIVES);
+	camera->setNearFarRatio(0.0002f);
+	//camera->setClearColor(osg::Vec4(0.46, 0.59, 0.71, 1.0));
+
 	DataManager* pManager = DataManager::Instance();
 	pManager->LoadTerrain();
 	pManager->LoadAerocraft("c:/a/plane.FBX");
@@ -102,7 +127,7 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 	}
 
 	//Ìì¿ÕºÐ
-	if (0)
+	if (1)
 	{
 		std::vector<std::string> _cubemapDirs;
 		_cubemapDirs.push_back("sky_clear");
@@ -110,13 +135,21 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 		_cubemapDirs.push_back("sky_fair_cloudy");
 
 		osg::ref_ptr<osg::TextureCubeMap> _cubemap;
-		_cubemap = loadCubeMapTextures(_cubemapDirs[0]);
+		_cubemap = loadCubeMapTextures(_cubemapDirs[1]);
 
 		osg::ref_ptr<SkyDome> _skyDome;
-		_skyDome = new SkyDome(1900.f, 16, 16, _cubemap.get());
+		_skyDome = new SkyDome(19.f, 16, 16, _cubemap.get());
 
 		osg::Group* pRoot = dynamic_cast<osg::Group*>(pManager->GetRootNode());
-		pRoot->addChild(_skyDome);
+
+		osg::MatrixTransform* transform = new osg::MatrixTransform;
+		transform->setDataVariance(osg::Object::DYNAMIC);
+		transform->setMatrix(osg::Matrixf::translate(osg::Vec3f(0.f, 0.f, 0.f)));
+		transform->setCullCallback(new CameraTrackCallback);
+
+		transform->addChild(_skyDome.get());
+
+		pRoot->addChild(transform);
 	}
 
 	view->setSceneData(pManager->GetRootNode());
