@@ -7,10 +7,61 @@
 #include <osgOcean/OceanScene>
 #include <osgOcean/Version>
 #include <osgOcean/ShaderManager>
+#include <osg/ComputeBoundsVisitor>
 
 #include "Scene.h"
 
 osgViewer::View* g_pView = nullptr;
+
+class MyNodeTrackerManipulator : public osgGA::NodeTrackerManipulator
+{
+public:
+
+	MyNodeTrackerManipulator(){}
+	~MyNodeTrackerManipulator(){}
+
+protected:
+
+	void computeHomePosition(const osg::Camera *camera, bool useBoundingBox) override
+	{
+		if (getNode())
+		{
+			osg::BoundingSphere boundingSphere;
+			boundingSphere = getNode()->getBound();
+
+			// set dist to default
+			double dist = 3.5f * boundingSphere.radius();
+
+			if (camera)
+			{
+				// try to compute dist from frustum
+				double left, right, bottom, top, zNear, zFar;
+				if (camera->getProjectionMatrixAsFrustum(left, right, bottom, top, zNear, zFar))
+				{
+					double vertical2 = fabs(right - left) / zNear / 2.;
+					double horizontal2 = fabs(top - bottom) / zNear / 2.;
+					double dim = horizontal2 < vertical2 ? horizontal2 : vertical2;
+					double viewAngle = atan2(dim, 1.);
+					dist = boundingSphere.radius() / sin(viewAngle);
+				}
+				else
+				{
+					// try to compute dist from ortho
+					if (camera->getProjectionMatrixAsOrtho(left, right, bottom, top, zNear, zFar))
+					{
+						dist = fabs(zFar - zNear) / 2.;
+					}
+				}
+			}
+
+			// set home position
+			setHomePosition(boundingSphere.center() + osg::Vec3d(0.0, /*dist * 0.01*/0.03, 0.0f),
+				boundingSphere.center(),
+				osg::Vec3d(0.0f, 0.0f, 1.0f),
+				_autoComputeHomePosition);
+		}
+	}
+};
 
 class CameraTrackCallback : public osg::NodeCallback
 {
@@ -71,17 +122,22 @@ void SetTerrainManipulator()
 	g_pView->setCameraManipulator(pManipulator);
 }
 
-void SetNodeTrackerManipulator()
+void SetNodeTrackerManipulator(int nNodeIndex = 0)
 {
 	DataManager* pManager = DataManager::Instance();
-	osgGA::NodeTrackerManipulator* pManipulator = new osgGA::NodeTrackerManipulator;
-	pManipulator->setTrackNode(pManager->GetAerocraftNode());
+	//osgGA::NodeTrackerManipulator* pManipulator = new osgGA::NodeTrackerManipulator;
+	MyNodeTrackerManipulator* pManipulator = new MyNodeTrackerManipulator;
+
+	osg::Node* pNode = nNodeIndex == 0 ? pManager->GetAerocraftNode() : pManager->GetTargetObjectNode();
+	pManipulator->setTrackNode(pNode);
+
 	g_pView->setCameraManipulator(pManipulator/*new osgGA::TrackballManipulator*/);
 	pManipulator->setMinimumDistance(0.002);
 }
 
 ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel) : QWidget()
 {
+	setMinimumSize(QSize(400, 300));
 	setThreadingModel(threadingModel);
 
 	// disable the default setting of viewer.done() by pressing Escape.
@@ -108,26 +164,36 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 
 	DataManager* pManager = DataManager::Instance();
 	pManager->LoadTerrain();
+	pManager->LoadTargetObject("c:/102202.FBX"/*"c:/a/boat.FBX"*/);
 	pManager->LoadAerocraft("c:/a/plane.FBX");
 
 	{
+// 		osg::ref_ptr<osgOcean::FFTOceanSurface> surface = new osgOcean::FFTOceanSurface(64, 256, 17
+// 			, osg::Vec2(1.1f, 1.1f), 12, 10, 0.8, 1e-8, true, 2.5, 20.0, 256);
+
 		osg::ref_ptr<osgOcean::FFTOceanSurface> surface = new osgOcean::FFTOceanSurface(64, 256, 17
-			, osg::Vec2(1.1f, 1.1f), 12, 10, 0.8, 1e-8, true, 2.5, 20.0, 256);
-		surface->setFoamBottomHeight(2.2);
-		surface->setFoamTopHeight(3.0);
+			, osg::Vec2(1.1f, 1.1f), 12, 10, 0.8, 1e-8, true, 2.5, 1.0, 32);
+
+		surface->setWaveScaleFactor(1e-10f);
+ 		surface->setFoamBottomHeight(2.2);
+ 		surface->setFoamTopHeight(3.0);
+
 		surface->enableCrestFoam(true);
 
 		osg::PositionAttitudeTransform* pTransform = new osg::PositionAttitudeTransform;
 		pTransform->addChild(surface.get());
+// 		pTransform->setScale(osg::Vec3d(0.001, 0.001, 0.001)); //台湾
+// 		pTransform->setPosition(osg::Vec3d(121.1, 23.7, -0.004)); //台湾
+
 		pTransform->setScale(osg::Vec3d(0.001, 0.001, 0.001));
-		pTransform->setPosition(osg::Vec3d(121.1, 23.7, -0.004));
+		pTransform->setPosition(osg::Vec3d(110.66549999999999, 17.998166666666666, -0.004));
 
 		osg::Group* pRoot = dynamic_cast<osg::Group*>(pManager->GetRootNode());
 		pRoot->addChild(pTransform);
 	}
 
 	//天空盒
-	if (1)
+	if (0)
 	{
 		std::vector<std::string> _cubemapDirs;
 		_cubemapDirs.push_back("sky_clear");
@@ -161,8 +227,8 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 	// 漫反射光
 	view->getLight()->setDiffuse(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
-	SetNodeTrackerManipulator();
-	//SetTerrainManipulator();
+	//SetNodeTrackerManipulator();
+	SetTerrainManipulator();
 
 	QWidget* widget1 = gw->getGLWidget();
 

@@ -1,10 +1,20 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QtWidgets/QMainWindow>
-#include "ui_MainWindow.h"
+#include <QMainWindow>
+#include "ui_Mainwindow.h"
+#include "FileTreeView.h"
 
-class MainWindow : public QMainWindow
+#include <QtitanRibbon.h>
+
+
+namespace Qtitan
+{
+	class WidgetGalleryItems;
+	class OfficeWidgetGallery;
+}
+
+class MainWindow : public Qtitan::RibbonMainWindow
 {
 	Q_OBJECT
 
@@ -14,28 +24,58 @@ public:
 
 public slots:
 
-	void slotSetManipulatorAeroplane();
+	void slotOpenProject();
+	void slotNewProject();
 
-	void slotSetManipulatorTerrain();
+	void slotRencentProject();
 
-	void slotLoadAeroplane();
+public:
 
-	void slotLoadObservedObj();
+	void loadRencentProjectConfig();
 
-	void slotSetAeroplaneMatrix();
+	void saveRencentProjectConfig();
 
-	void slotCirclePath();
+protected:
 
-	void slotLinePath();
+	void addRecentProject(const QString& strProjectPath);
 
-	void slotPathPara();
-
-	void slotTargetPara();
-
-	void slotRadarBeamPara();
+	void deleteRecentProject(const QString& strProjectPath);
 
 private:
-	Ui::MainWindowClass ui;
+	//Ui::Mainwindow ui;
+
+	FileTreeView* m_pFileTreeView;
+	CentralWidget* m_pCentralWidget;
+
+private:
+	void createMenuFile();
+	void createRibbon();
+	void createStatusBar();
+	void createOptions();
+
+protected Q_SLOTS:
+
+	void optionsTheme(QAction*);
+	void pressButton();
+	void maximizeToggle();
+	void minimizationChanged(bool minimized);
+	void optionsFont(QAction* act);
+	void setDPIToggled(bool);
+
+private:
+	QAction* m_actionRibbonMinimize;
+	QAction* m_actionDefault;
+	QAction* m_actionNormal;
+	QAction* m_actionLarge;
+	QAction* m_actionExLarge;
+
+	int m_defaultFont;
+
+	Qtitan::RibbonStyle* m_ribbonStyle;
+
+	QMenu* m_pRencentMenu;
+
+	QStringList m_listRecentProject;
 };
 
 #endif // MAINWINDOW_H

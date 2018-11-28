@@ -39,13 +39,15 @@ public:
 
 	osg::Node* GetAerocraftNode();
 
-	osg::Node* GetObservedObjectNode();
+	osg::Node* GetTargetObjectNode();
 
 	osg::Node* GetTerrainNode();
 
 	osg::Node* GetRadarBeamNode();
 
 	osg::Node* GetRootNode();
+
+	osg::Geode* GetPlanePath(){ return m_pAeroPathLine; }
 
 	void LoadTerrain();
 
@@ -62,12 +64,15 @@ public:
 	void GetTargetPara(double& dLon, double& dLat, double& dHeight, double& dRotateX
 		, double& dRotateY, double& dRotateZ, double& dScale);
 
-	void SetTargetPara(double dLon, double dLat, double dHeight, double dRotateX
+	void SetTargetPara(const osg::Vec3d& vecPos, double dRotateX
 		, double dRotateY, double dRotateZ, double dScale);
 
 protected:
 
 	osg::Group* m_pRoot;
+
+	//飞机飞行轨迹线
+	osg::Geode* m_pAeroPathLine;
 
 	osg::Node* m_pAerocraftNode;
 
@@ -83,6 +88,9 @@ protected:
 
 	//飞行器缩放倍数
 	double m_dScale;
+
+	//飞行器轨迹类型
+	PathType m_ePlanePathType;
 
 	//环形路径中心
 	osg::Vec3d m_circleCenter;

@@ -58,7 +58,7 @@ void TargetSettingsDlg::accept()
 	double dScale = ui.lineEdit_Scale->text().toDouble();
 
 	DataManager* pDataManager = DataManager::Instance();
-	pDataManager->SetTargetPara(dLon, dLat, dHeight, dRotateX, dRotateY, dRotateZ, dScale);
+	pDataManager->SetTargetPara(osg::Vec3d(dLon, dLat, dHeight), dRotateX, dRotateY, dRotateZ, dScale);
 
 	QDialog::accept();
 }
