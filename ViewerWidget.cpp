@@ -114,6 +114,27 @@ osg::ref_ptr<osg::TextureCubeMap> loadCubeMapTextures(const std::string& dir)
 	return cubeMap;
 }
 
+osg::Node* createLightSource(unsigned int num, const osg::Vec3d& trans, const osg::Vec3d &vecDir)
+{
+	osg::ref_ptr<osg::Light> light = new osg::Light;
+	light->setLightNum(num);
+	light->setDirection(vecDir);
+	//light->setAmbient(osg::Vec4(0.0f,0.0f,0.0f,1.0f));
+	//设置散射光的颜色
+	//light->setDiffuse(osg::Vec4(0.8f,0.8f,0.8f,1.0f));
+	// 
+	//light->setSpecular(osg::Vec4(1.0f,1.0f,1.0f,1.0f));
+	//light->setPosition( osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f) );
+
+	osg::ref_ptr<osg::LightSource> lightSource = new osg::LightSource;
+	lightSource->setLight(light);
+
+	osg::ref_ptr<osg::MatrixTransform> sourceTrans = new osg::MatrixTransform;
+	sourceTrans->setMatrix(osg::Matrix::translate(trans));
+	sourceTrans->addChild(lightSource.get());
+	return sourceTrans.release();
+}
+
 void SetTerrainManipulator()
 {
 	DataManager* pManager = DataManager::Instance();
@@ -145,6 +166,7 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 
 	osgQt::GraphicsWindowQt* gw = createGraphicsWindow(0, 0, 100, 100);
 	osgViewer::View* view = new osgViewer::View;
+	view->setLightingMode(osg::View::SKY_LIGHT);
 
 	g_pView = view;
 	addView(view);
@@ -171,25 +193,51 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 // 		osg::ref_ptr<osgOcean::FFTOceanSurface> surface = new osgOcean::FFTOceanSurface(64, 256, 17
 // 			, osg::Vec2(1.1f, 1.1f), 12, 10, 0.8, 1e-8, true, 2.5, 20.0, 256);
 
-		osg::ref_ptr<osgOcean::FFTOceanSurface> surface = new osgOcean::FFTOceanSurface(64, 256, 17
-			, osg::Vec2(1.1f, 1.1f), 12, 10, 0.8, 1e-8, true, 2.5, 1.0, 32);
+// 		osg::ref_ptr<osgOcean::FFTOceanSurface> surface = new osgOcean::FFTOceanSurface(/*64, 256, 17
+// 			, osg::Vec2(1.1f, 1.1f), 12, 10, 0.8, 1e-8, true, 2.5, 1.0, 32*/);
 
-		surface->setWaveScaleFactor(1e-10f);
- 		surface->setFoamBottomHeight(2.2);
- 		surface->setFoamTopHeight(3.0);
+		osg::ref_ptr<osgOcean::FFTOceanSurface> surface = new osgOcean::FFTOceanSurface(32);
 
-		surface->enableCrestFoam(true);
+ 		surface->setWaveScaleFactor(5e-9f);
+//  		surface->setFoamBottomHeight(2.2);
+//  		surface->setFoamTopHeight(3.0);
+// 
+// 		surface->enableCrestFoam(true);
+
+		surface->setLightColor(osg::Vec4f(0.0, 0.0, 1.0, 1.0));
 
 		osg::PositionAttitudeTransform* pTransform = new osg::PositionAttitudeTransform;
 		pTransform->addChild(surface.get());
-// 		pTransform->setScale(osg::Vec3d(0.001, 0.001, 0.001)); //台湾
+ 		pTransform->setScale(osg::Vec3d(0.01, 0.01, 0.01)); //台湾
 // 		pTransform->setPosition(osg::Vec3d(121.1, 23.7, -0.004)); //台湾
 
-		pTransform->setScale(osg::Vec3d(0.001, 0.001, 0.001));
-		pTransform->setPosition(osg::Vec3d(110.66549999999999, 17.998166666666666, -0.004));
+		//pTransform->setScale(osg::Vec3d(0.01, 0.01, 0.02));
+		pTransform->setPosition(osg::Vec3d(112.66549999999999, 30.998166666666666, 0.0/*-0.004*/));
+
+		//可能缩放变换会造成光照结果过于明亮或暗淡，要在StateSet中允许法线的重缩放模式。
+		pTransform->getOrCreateStateSet()->setMode(GL_RESCALE_NORMAL, osg::StateAttribute::OVERRIDE);
 
 		osg::Group* pRoot = dynamic_cast<osg::Group*>(pManager->GetRootNode());
 		pRoot->addChild(pTransform);
+	}
+
+	//添加多光源
+	if (0)
+	{
+		osg::Group* pRoot = dynamic_cast<osg::Group*>(pManager->GetRootNode());
+		osg::ref_ptr<osg::StateSet> stateset = pRoot->getOrCreateStateSet();
+		stateset->setMode(GL_LIGHTING, osg::StateAttribute::ON);
+		stateset->setMode(GL_LIGHT6, osg::StateAttribute::ON);	// GL_LIGHT0是默认光源
+		// 设置6个光源 解决光照问题
+		osg::Vec3d ptLight;
+		osg::Vec3d ptCenter = osg::Vec3d(0, 0, 0);
+		double dDis = 200000.0;
+		{
+			ptLight = ptCenter + osg::Z_AXIS * dDis;
+			osg::Node *pNodeLight = createLightSource(6, ptLight, -osg::Z_AXIS);
+			pNodeLight->setName("light6");
+			pRoot->addChild(pNodeLight);
+		}
 	}
 
 	//天空盒
@@ -221,7 +269,7 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 	view->setSceneData(pManager->GetRootNode());
 	view->addEventHandler(new osgViewer::StatsHandler);
 
-	view->getLight()->setPosition(osg::Vec4(1.0f, 1.0f, 1.0f, 0.0f));
+	view->getLight()->setPosition(osg::Vec4(0.0f, 0.0f, 1.0f, 0.0f));
 	// 环境光
 	view->getLight()->setAmbient(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	// 漫反射光

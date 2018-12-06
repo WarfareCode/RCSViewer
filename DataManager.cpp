@@ -349,6 +349,7 @@ void DataManager::LoadTerrain()
 				ss->setAttributeAndModes(program, osg::StateAttribute::OVERRIDE);
 				ss->setMode(GL_BLEND, osg::StateAttribute::ON);
 				ss->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+				ss->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
 			}
 		}
 
@@ -377,16 +378,48 @@ void DataManager::LoadTerrain()
 		pNode->setStateSet(ss);
 		pTerrainGroup->addChild(pNode);
 
-		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/dunhuang.ive"));
-		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/dunhuang(mubiaoqu).ive"));
-		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/dunhuang3.ive"));
-		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/hami(jichangqu).ive"));
-		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/hami(mubiaoqu).ive"));
-		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/jinzhou.ive"));
-		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/kuerle.ive"));
-		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/liaoningchaoyang.ive"));
-		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/qiemo.ive"));
-		pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/xilinhaote.ive"));
+		pNode = osgDB::readNodeFile("D:/rcsmodel/dunhuang.ive");
+		osg::StateSet* stateset = pNode->getOrCreateStateSet();
+		stateset->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+		stateset->setRenderBinDetails(11, "RenderBin");
+		pTerrainGroup->addChild(pNode);
+
+
+		pNode = osgDB::readNodeFile("D:/rcsmodel/dunhuang(mubiaoqu).ive");
+		pNode->setStateSet(stateset);
+		pTerrainGroup->addChild(pNode);
+
+		pNode = osgDB::readNodeFile("D:/rcsmodel/dunhuang3.ive");
+		pNode->setStateSet(stateset);
+		pTerrainGroup->addChild(pNode);
+
+		pNode = osgDB::readNodeFile("D:/rcsmodel/hami(jichangqu).ive");
+		pNode->setStateSet(stateset);
+		pTerrainGroup->addChild(pNode);
+
+		pNode = osgDB::readNodeFile("D:/rcsmodel/hami(mubiaoqu).ive");
+		pNode->setStateSet(stateset);
+		pTerrainGroup->addChild(pNode);
+
+		pNode = osgDB::readNodeFile("D:/rcsmodel/jinzhou.ive");
+		pNode->setStateSet(stateset);
+		pTerrainGroup->addChild(pNode);
+
+		pNode = osgDB::readNodeFile("D:/rcsmodel/kuerle.ive");
+		pNode->setStateSet(stateset);
+		pTerrainGroup->addChild(pNode);
+
+		pNode = osgDB::readNodeFile("D:/rcsmodel/liaoningchaoyang.ive");
+		pNode->setStateSet(stateset);
+		pTerrainGroup->addChild(pNode);
+
+		pNode = osgDB::readNodeFile("D:/rcsmodel/qiemo.ive");
+		pNode->setStateSet(stateset);
+		pTerrainGroup->addChild(pNode);
+
+		pNode = osgDB::readNodeFile("D:/rcsmodel/xilinhaote.ive");
+		pNode->setStateSet(stateset);
+		pTerrainGroup->addChild(pNode);
 	}
 }
 
