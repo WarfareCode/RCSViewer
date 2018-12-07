@@ -114,25 +114,22 @@ osg::ref_ptr<osg::TextureCubeMap> loadCubeMapTextures(const std::string& dir)
 	return cubeMap;
 }
 
-osg::Node* createLightSource(unsigned int num, const osg::Vec3d& trans, const osg::Vec3d &vecDir)
+osg::Node* createLightSource(unsigned int num)
 {
 	osg::ref_ptr<osg::Light> light = new osg::Light;
 	light->setLightNum(num);
-	light->setDirection(vecDir);
-	//light->setAmbient(osg::Vec4(0.0f,0.0f,0.0f,1.0f));
+//	light->setDirection(vecDir);
+	light->setAmbient(osg::Vec4(1.0f,1.0f,1.0f,1.0f));
 	//设置散射光的颜色
-	//light->setDiffuse(osg::Vec4(0.8f,0.8f,0.8f,1.0f));
-	// 
-	//light->setSpecular(osg::Vec4(1.0f,1.0f,1.0f,1.0f));
-	//light->setPosition( osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f) );
+	light->setDiffuse(osg::Vec4(0.8f,0.8f,0.8f,1.0f));
+	 
+	light->setSpecular(osg::Vec4(1.0f,1.0f,1.0f,1.0f));
+	light->setPosition( osg::Vec4(0.0f, 0.0f, 1.0f, 0.0f) );
 
 	osg::ref_ptr<osg::LightSource> lightSource = new osg::LightSource;
 	lightSource->setLight(light);
 
-	osg::ref_ptr<osg::MatrixTransform> sourceTrans = new osg::MatrixTransform;
-	sourceTrans->setMatrix(osg::Matrix::translate(trans));
-	sourceTrans->addChild(lightSource.get());
-	return sourceTrans.release();
+	return lightSource.release();
 }
 
 void SetTerrainManipulator()
@@ -190,6 +187,7 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 	pManager->LoadAerocraft("c:/a/plane.FBX");
 
 	{
+		osgOcean::ShaderManager::instance().enableShaders(true);
 // 		osg::ref_ptr<osgOcean::FFTOceanSurface> surface = new osgOcean::FFTOceanSurface(64, 256, 17
 // 			, osg::Vec2(1.1f, 1.1f), 12, 10, 0.8, 1e-8, true, 2.5, 20.0, 256);
 
@@ -199,10 +197,10 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 		osg::ref_ptr<osgOcean::FFTOceanSurface> surface = new osgOcean::FFTOceanSurface(32);
 
  		surface->setWaveScaleFactor(5e-9f);
-//  		surface->setFoamBottomHeight(2.2);
-//  		surface->setFoamTopHeight(3.0);
+// 		surface->setFoamBottomHeight(2.2);
+// 		surface->setFoamTopHeight(3.0);
 // 
-// 		surface->enableCrestFoam(true);
+	  	surface->enableCrestFoam(true);
 
 		surface->setLightColor(osg::Vec4f(0.0, 0.0, 1.0, 1.0));
 
@@ -231,10 +229,10 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 		// 设置6个光源 解决光照问题
 		osg::Vec3d ptLight;
 		osg::Vec3d ptCenter = osg::Vec3d(0, 0, 0);
-		double dDis = 200000.0;
+		double dDis = 20.0;
 		{
 			ptLight = ptCenter + osg::Z_AXIS * dDis;
-			osg::Node *pNodeLight = createLightSource(6, ptLight, -osg::Z_AXIS);
+			osg::Node *pNodeLight = createLightSource(6);
 			pNodeLight->setName("light6");
 			pRoot->addChild(pNodeLight);
 		}

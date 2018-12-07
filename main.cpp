@@ -1,4 +1,4 @@
-#include "MainWindow3D.h"
+﻿#include "MainWindow3D.h"
 #include <QtWidgets/QApplication>
 #include <windows.h>
 #include <osgDB/FileNameUtils>
