@@ -229,6 +229,7 @@
     <ClCompile Include="GeneratedFiles\Release\moc_videoplayer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="gps_rcs_files_read.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mainwindow.cpp" />
     <ClCompile Include="MainWindow3D.cpp" />
@@ -446,6 +447,7 @@
     <ClInclude Include="GeneratedFiles\ui_SQLSelectDlg.h" />
     <ClInclude Include="GeneratedFiles\ui_TypeTreeView.h" />
     <ClInclude Include="GeneratedFiles\ui_ValueInputDlg.h" />
+    <ClInclude Include="gps_rcs_files_read.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ScopedTimer.h" />

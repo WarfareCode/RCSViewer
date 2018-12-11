@@ -257,6 +257,9 @@
     <ClCompile Include="ValueInputDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="gps_rcs_files_read.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.ui">
@@ -467,6 +470,9 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_ValueInputDlg.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gps_rcs_files_read.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
