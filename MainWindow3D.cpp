@@ -14,8 +14,10 @@
 #include "RadarBeamRotateDlg.h"
 #include "videoplayer.h"
 #include <QtWidgets/QMenuBar>
+#include "samplingthread.h"
 
 extern osgViewer::View* g_pView;
+extern SamplingThread* g_pSampleThread;
 
 void SetTerrainManipulator();
 void SetNodeTrackerManipulator(int nIndex = 0);
@@ -111,8 +113,14 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 	addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, pDockWidget);
 	//pDockWidget->setFloating(true);
 
+	m_pPlot = new Plot(this);
+
+	g_pSampleThread->start();
+	m_pPlot->start();
+	//m_pPlot->setIntervalLength(10.0);
+
 	QDockWidget* pDockWidget2 = new QDockWidget;
-	//pDockWidget2->setWidget(new MyWidget);
+	pDockWidget2->setWidget(m_pPlot);
 	addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, pDockWidget2);
 	//pDockWidget2->setFloating(true);
 }

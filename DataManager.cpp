@@ -14,6 +14,10 @@
 #include <QtCore/QFile>
 #include <QtCore/QVector>
 #include <QtCore/QTime>
+#include "gps_rcs_files_read.h"
+#include "samplingthread.h"
+
+extern SamplingThread* g_pSampleThread;
 
 static char * vertexShader = {
 	"void main(void ){\n"
@@ -235,8 +239,8 @@ DataManager::DataManager()
 	osg::Vec3d scale(m_dScale, m_dScale, m_dScale);
 
 	//osg::AnimationPath* animationPath = createCircleAnimationPath(m_circleCenter, scale, m_dCircleRadius, m_dCircleTime);
-	osg::AnimationPath* animationPath = createPlaneAnimationPath("c:/airport_gps.dat", scale, 400/*m_dCircleTime*/);
-	m_pAerocraftAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPath, 0.0, 1.0));
+	//osg::AnimationPath* animationPath = createPlaneAnimationPath("c:/airport_gps.dat", scale, 400/*m_dCircleTime*/);
+	//m_pAerocraftAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPath, 0.0, 1.0));
 
 	m_pRoot->addChild(m_pAerocraftAnimationNode);
 
@@ -251,8 +255,8 @@ DataManager::DataManager()
 	m_pRoot->addChild(m_pTargetAnimationNode);
 
 	osg::Vec3d scaleTarget(m_dTargetScale, m_dTargetScale, m_dTargetScale);
-	osg::AnimationPath* targetAnimationPath = createTargetAnimationPath("c:/a.txt", scaleTarget, 400.0);
-	m_pTargetAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(targetAnimationPath));
+	//osg::AnimationPath* targetAnimationPath = createTargetAnimationPath("c:/a.txt", scaleTarget, 400.0);
+	//m_pTargetAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(targetAnimationPath));
 
 	m_vTargetPos = osg::Vec3d(121.338, 22.543, -0.0103);
 	SetTargetPara(m_vTargetPos, m_dTargetRotateX, m_dTargetRotateY, m_dTargetRotateZ, m_dTargetScale);
@@ -297,6 +301,80 @@ DataManager::DataManager()
 
 DataManager::~DataManager()
 {
+}
+
+bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QString rcsfile)
+{
+	cTime timeStart;
+	QVector<dataunit> vecData;
+	if (!gps_rcs_files_read(gpsfile, targpsfile, rcsfile, vecData, timeStart))
+ 		return false;
+
+	osg::AnimationPath* animationPathPlane = new osg::AnimationPath;
+	animationPathPlane->setLoopMode(osg::AnimationPath::LOOP);
+
+	osg::AnimationPath* animationPathTarget = new osg::AnimationPath;
+	animationPathTarget->setLoopMode(osg::AnimationPath::LOOP);
+
+	m_pAerocraftAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPathPlane));
+	m_pTargetAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPathTarget));
+
+	osg::Vec3d scale(m_dScale, m_dScale, m_dScale);
+	double dTime = vecData[0].dTime;
+	int nSize = vecData.size();
+	for (int i = 0; i < nSize; i++)
+	{
+		osg::Quat quat;
+		osg::Vec3d position(vecData[i].plane_lon, vecData[i].plane_lat, vecData[i].plane_Height);
+
+		if (i != 0 && i < nSize - 1)
+		{
+			osg::Vec3 vec0(1.0, 0.0, 0.0);
+			osg::Vec3 vec1(vecData[i + 1].plane_lon - vecData[i - 1].plane_lon, vecData[i + 1].plane_lat - vecData[i - 1].plane_lat, 0.0);
+
+			quat.makeRotate(vec0, vec1);
+		}
+
+		animationPathPlane->insert(vecData[i].dTime - dTime, osg::AnimationPath::ControlPoint(position, quat, scale));
+	}
+
+	osg::Vec3d scaleTarget(m_dTargetScale, m_dTargetScale, m_dTargetScale);
+	for (int i = 0; i < nSize; i++)
+	{
+		osg::Quat quat;
+		osg::Vec3d position(vecData[i].target_lon, vecData[i].target_lat, vecData[i].target_Height);
+
+		if (i != 0 && i < nSize - 1)
+		{
+			osg::Vec3 vec0(1.0, 0.0, 0.0);
+			osg::Vec3 vec1(vecData[i + 1].target_lon - vecData[i - 1].target_lon, vecData[i + 1].target_lat - vecData[i - 1].target_lat, 0.0);
+
+			quat.makeRotate(vec0, vec1);
+		}
+
+		animationPathTarget->insert(vecData[i].dTime - dTime, osg::AnimationPath::ControlPoint(position, quat, scaleTarget));
+	}
+
+	//¼ÓÔØÇúÏßÏÔÊ¾
+	if (g_pSampleThread)
+	{
+		if (g_pSampleThread->isRunning())
+		{
+			g_pSampleThread->stop();
+			g_pSampleThread->wait(1000);
+		}
+
+		delete g_pSampleThread;
+		g_pSampleThread = nullptr;
+	}
+
+	g_pSampleThread = new SamplingThread;
+
+	g_pSampleThread->setFrequency(0.05);
+	g_pSampleThread->setAmplitude(160.0);
+	g_pSampleThread->setInterval(10.0);
+
+	return true;
 }
 
 DataManager* DataManager::Instance()

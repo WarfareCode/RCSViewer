@@ -5,6 +5,9 @@
 #include <osgDB/ReadFile>
 #include "Mainwindow.h"
 #include "osg/Matrixf"
+#include "samplingthread.h"
+
+SamplingThread* g_pSampleThread = nullptr;
 
 int main(int argc, char *argv[])
 {
@@ -33,7 +36,17 @@ int main(int argc, char *argv[])
 	//mainWindow.resize(1000, 600);
 	mainWindow.showMaximized();
 
+// 	SamplingThread samplingThread;
+// 	samplingThread.setFrequency(0.05);
+// 	samplingThread.setAmplitude(160.0);
+// 	samplingThread.setInterval(10.0);
+// 	g_pSampleThread = &samplingThread;
+
 	int nRes = app.exec();
 	mainWindow.saveRencentProjectConfig();
+
+// 	samplingThread.stop();
+// 	samplingThread.wait(1000);
+
 	return nRes;
 }

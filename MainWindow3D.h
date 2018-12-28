@@ -2,6 +2,7 @@
 #define MAINWINDOW3D_H
 
 #include <QtWidgets/QMainWindow>
+#include "plot.h"
 
 class MainWindow3D : public QMainWindow
 {
@@ -34,6 +35,10 @@ public slots:
 	void slotTargetPara();
 
 	void slotRadarBeamPara();
+
+private:
+
+	Plot* m_pPlot;
 
 // private:
 // 	Ui::MainWindowClass ui;

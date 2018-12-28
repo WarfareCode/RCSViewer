@@ -5,9 +5,9 @@
 using namespace std;
 #include <QtCore/QString>
 
-#define MAX_RCS_POINTS 2000000
-#define MAX_AZI_POINTS 2000000
-#define C 3.0e8
+#define MAX_RCS_POINTS 500000
+#define MAX_AZI_POINTS 500000
+//#define C 3.0e8
 
 #define MAX_FILES 100
 #define pi 3.14159265
@@ -17,12 +17,11 @@ typedef struct cTime{
 	int iYear;
 	int iMonth;
 	int iDay;
-	double dHours;
-	double dMinutes;
-	double dSeconds;
+// 	double dHours;
+// 	double dMinutes;
+// 	double dSeconds;
 
 }cTime;
-
 
 typedef  struct dataunit
 {
@@ -34,15 +33,17 @@ typedef  struct dataunit
 	double target_lat;
 	double target_lon;
 	double target_Height;
-	cTime  ctime;
-
+	//cTime  ctime;
+	double dTime;
 }detaunit;
+
 void LinearIntp(double *xout, double *yout, __int64 xn, double *yin, __int64 yn);
 
 bool gps_rcs_files_read(QString gpsfile,
 	QString targpsfile,
 	QString rcsfile,
-	QVector<dataunit> &vec_data);
+	QVector<dataunit> &vec_data, 
+	cTime& startTime);
 
 
 #endif // GPS_RCS_FILES_READ_H

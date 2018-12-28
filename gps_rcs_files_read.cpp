@@ -2,6 +2,7 @@
 #include<math.h>
 #include <QStringList>
 #include <fstream>
+#include <QVector>
 
 void LinearIntp(double *xout, double *yout, __int64 xn, double *yin, __int64 yn)
 {
@@ -19,7 +20,8 @@ void LinearIntp(double *xout, double *yout, __int64 xn, double *yin, __int64 yn)
 bool gps_rcs_files_read(QString gpsfile,
 	QString targpsfile,
 	QString rcsfile,
-	vector<dataunit> &vec_data)
+	QVector<dataunit> &vec_data,
+	cTime& startTime)
 {
 	if (vec_data.size() > 0)
 	{
@@ -27,7 +29,7 @@ bool gps_rcs_files_read(QString gpsfile,
 	}
 
 	dataunit dataunit_temp;
-	cTime time_temp;
+	//cTime time_temp;
 	//target
 	double *tar_lati_raw = new double[MAX_RCS_POINTS];
 	double *tar_logn_raw = new double[MAX_RCS_POINTS];
@@ -118,9 +120,9 @@ bool gps_rcs_files_read(QString gpsfile,
 	}
 
 	QStringList list_d = plat_date.at(0).split("-");
-	time_temp.iYear = list_d.at(0).toInt();
-	time_temp.iMonth = list_d.at(1).toInt();
-	time_temp.iDay = list_d.at(2).toInt();
+	startTime.iYear = list_d.at(0).toInt();
+	startTime.iMonth = list_d.at(1).toInt();
+	startTime.iDay = list_d.at(2).toInt();
 
 	QString plat_time_s = plat_time.at(0); //[0];
 	QString plat_time_e = plat_time.at(plat_gps_point - 1);
@@ -249,16 +251,18 @@ bool gps_rcs_files_read(QString gpsfile,
 		dataunit_temp.target_lat = tar_lati_intp[k];
 		dataunit_temp.target_Height = tar_h_intp[k];
 
-		dataunit_temp.ctime.iYear = time_temp.iYear;
-		dataunit_temp.ctime.iMonth = time_temp.iMonth;
-		dataunit_temp.ctime.iDay = time_temp.iDay;
+// 		dataunit_temp.ctime.iYear = time_temp.iYear;
+// 		dataunit_temp.ctime.iMonth = time_temp.iMonth;
+// 		dataunit_temp.ctime.iDay = time_temp.iDay;
 
-		hour_temp = floor(tar_sec_intp[k] / 3600);
+// 		hour_temp = floor(tar_sec_intp[k] / 3600);
+// 
+// 		dataunit_temp.ctime.dHours = hour_temp;
+// 		min_temp = floor((tar_sec_intp[k] - 3600 * hour_temp) / 60);
+// 		dataunit_temp.ctime.dMinutes = min_temp;
+// 		dataunit_temp.ctime.dSeconds = floor(tar_sec_intp[k] - 3600 * hour_temp - 60 * min_temp);
 
-		dataunit_temp.ctime.dHours = hour_temp;
-		min_temp = floor((tar_sec_intp[k] - 3600 * hour_temp) / 60);
-		dataunit_temp.ctime.dMinutes = min_temp;
-		dataunit_temp.ctime.dSeconds = floor(tar_sec_intp[k] - 3600 * hour_temp - 60 * min_temp);
+		dataunit_temp.dTime = tar_sec_intp[k];
 
 		vec_data.push_back(dataunit_temp);
 	}

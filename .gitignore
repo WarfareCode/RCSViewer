@@ -99,3 +99,7 @@ GeneratedFiles/ui_OpenProjectDlg.h
 GeneratedFiles/ui_SQLSelectDlg.h
 GeneratedFiles/ui_TypeTreeView.h
 GeneratedFiles/ui_ValueInputDlg.h
+GeneratedFiles/Debug/moc_plot.cpp
+GeneratedFiles/Debug/moc_samplingthread.cpp
+GeneratedFiles/Release/moc_plot.cpp
+GeneratedFiles/Release/moc_samplingthread.cpp

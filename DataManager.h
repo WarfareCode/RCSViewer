@@ -16,6 +16,8 @@ public:
 
 	static DataManager* Instance();
 
+	bool LoadDataAndDisplay(QString gpsfile, QString targpsfile, QString rcsfile);
+
 	void LoadAerocraft(const QString& strFile);
 
 	void SetAerocraftRotate(float x, float y, float z);
