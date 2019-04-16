@@ -79,6 +79,25 @@ void SignalData::unlock()
     d_data->lock.unlock();
 }
 
+void SignalData::Clear()
+{
+	d_data->lock.lockForWrite();
+
+	d_data->values.clear();
+	d_data->values.reserve(1000);
+
+	d_data->boundingRect = QRectF(1.0, 1.0, -2.0, -2.0);
+
+	d_data->lock.unlock();
+
+	d_data->mutex.lock();
+	d_data->pendingValues.clear();
+
+	d_data->mutex.unlock();
+
+
+}
+
 void SignalData::append( const QPointF &sample )
 {
     d_data->mutex.lock();

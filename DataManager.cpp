@@ -10,12 +10,19 @@
 #include <osg/BlendFunc>
 #include <osg/ShapeDrawable>
 #include <osg/PolygonMode>
+#include <osg/Depth>
+#include <osg/LOD>
 #include <QtGui/QVector3D>
 #include <QtCore/QFile>
 #include <QtCore/QVector>
 #include <QtCore/QTime>
 #include "gps_rcs_files_read.h"
 #include "samplingthread.h"
+#include "PlaneLOD.h"
+#include <osgOcean/ShaderManager>
+#include <osgOcean/FFTOceanSurface>
+#include <osg/PolygonOffset>
+#include <osg/Switch>
 
 extern SamplingThread* g_pSampleThread;
 
@@ -27,16 +34,67 @@ static char * vertexShader = {
 };
 static char * fragShader = {
 	"uniform sampler2D sampler0;\n"
-	"uniform vec4 mcolor;\n"
 	"void main(void){\n"
 	"gl_FragColor = texture2D(sampler0, gl_TexCoord[0].st);\n"
-	"if(gl_FragColor.r < 0.1)\n"
+	"if(gl_FragColor.r == 0.0)\n"
 	"gl_FragColor.a = 0.0;\n"
 
 	"}\n"
 };
 
 DataManager* g_DataManager = nullptr;
+
+QVector<dataunit> g_vecData;
+QMutex g_MutexData;
+
+osgOcean::FFTOceanSurface* g_surface = nullptr;
+
+void AddOcean(double dLon, double dLat, osg::Group* pParent)
+{
+	osgOcean::ShaderManager::instance().enableShaders(true);
+	// 		osg::ref_ptr<osgOcean::FFTOceanSurface> surface = new osgOcean::FFTOceanSurface(64, 256, 17
+	// 			, osg::Vec2(1.1f, 1.1f), 12, 10, 0.8, 1e-8, true, 2.5, 20.0, 256);
+
+	// 		osg::ref_ptr<osgOcean::FFTOceanSurface> surface = new osgOcean::FFTOceanSurface(/*64, 256, 17
+	// 			, osg::Vec2(1.1f, 1.1f), 12, 10, 0.8, 1e-8, true, 2.5, 1.0, 32*/);
+
+	if (g_surface == nullptr)
+	{
+		g_surface = new osgOcean::FFTOceanSurface(32);
+
+		g_surface->setWaveScaleFactor(5e-9f * 0.25);
+		// 		surface->setFoamBottomHeight(2.2);
+		// 		surface->setFoamTopHeight(3.0);
+		// 
+		g_surface->enableCrestFoam(true);
+
+		g_surface->setLightColor(osg::Vec4f(0.0, 0.0, 1.0, 1.0));
+	}
+
+
+	osg::PositionAttitudeTransform* pTransform = new osg::PositionAttitudeTransform;
+	pTransform->addChild(g_surface);
+
+	pTransform->setScale(osg::Vec3d(0.00032, 0.00032, 0.00032));
+	pTransform->setPosition(osg::Vec3d(dLon, dLat, -0.0004/*-0.004*/));
+
+	//可能缩放变换会造成光照结果过于明亮或暗淡，要在StateSet中允许法线的重缩放模式。
+	osg::StateSet* pStateSet = pTransform->getOrCreateStateSet();
+	pStateSet->setMode(GL_RESCALE_NORMAL, osg::StateAttribute::OVERRIDE);
+
+	{
+		//osg::Depth* depth = new osg::Depth;
+		//depth->setFunction(osg::Depth::ALWAYS);
+		//depth->setRange(0.1, 1.0);
+		//pStateSet->setAttributeAndModes(depth, osg::StateAttribute::ON);
+
+		//pStateSet->setRenderBinDetails(-2, "RenderBin");
+	}
+
+	osg::LOD* pLOD = new osg::LOD;
+	pLOD->addChild(pTransform, 0, 0.8);
+	pParent->addChild(pLOD);
+}
 
 osg::AnimationPath* createLineAnimationPath(const osg::Vec3d& startPoint
 	, const osg::Vec3d& endPoint, const osg::Vec3d& scale, double time)
@@ -102,16 +160,6 @@ osg::AnimationPath* createPlaneAnimationPath(const QString& strPlaneGPS, const o
 			QString strLine = line;
 			QStringList strList = strLine.split(QRegExp("\\s+"));
 
-			// 		if (bIni == false)
-			// 		{
-			// 			timeStart = QTime::fromString(strList[1], "hh:mm:ss");
-			// 			bIni = true;
-			// 		}
-			// 
-			// 		QTime time = QTime::fromString(strList[1], "hh:mm:ss");
-			// 		double dTime = time.secsTo(timeStart);
-			// 
-			// 		vecTime.push_back(dTime);
 			vecLon.push_back(strList[2].toDouble());
 			vecLat.push_back(strList[3].toDouble());
 			vecH.push_back(strList[4].toDouble() / 111000.0);
@@ -177,7 +225,7 @@ osg::AnimationPath* createTargetAnimationPath(const QString& strTargetGPS, const
 	double dTimeStep = looptime / nSize;
 
 	double dTime = 0.0;
-	for (int i = 0; i < nSize; i ++)
+	for (int i = 0; i < nSize; i++)
 	{
 		osg::Quat quat;
 		osg::Vec3d position(vecPos[i].first, vecPos[i].second, -0.0040);
@@ -217,7 +265,7 @@ DataManager::DataManager()
 	m_circleCenter = osg::Vec3d(121.038, 23.613, 0.1);
 	m_dScale = 0.0005;
 	m_dCircleRadius = 0.8;
-	m_dCircleTime = 200.0;
+	m_dCircleTime = 400.0;
 
 	m_lineStartPoint = osg::Vec3d(120.038, 23.613, 0.1);
 	m_lineEndPoint = osg::Vec3d(122.038, 23.613, 0.1);
@@ -238,10 +286,6 @@ DataManager::DataManager()
 
 	osg::Vec3d scale(m_dScale, m_dScale, m_dScale);
 
-	//osg::AnimationPath* animationPath = createCircleAnimationPath(m_circleCenter, scale, m_dCircleRadius, m_dCircleTime);
-	//osg::AnimationPath* animationPath = createPlaneAnimationPath("c:/airport_gps.dat", scale, 400/*m_dCircleTime*/);
-	//m_pAerocraftAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPath, 0.0, 1.0));
-
 	m_pRoot->addChild(m_pAerocraftAnimationNode);
 
 	m_dTargetRotateX = -90.0;
@@ -255,8 +299,6 @@ DataManager::DataManager()
 	m_pRoot->addChild(m_pTargetAnimationNode);
 
 	osg::Vec3d scaleTarget(m_dTargetScale, m_dTargetScale, m_dTargetScale);
-	//osg::AnimationPath* targetAnimationPath = createTargetAnimationPath("c:/a.txt", scaleTarget, 400.0);
-	//m_pTargetAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(targetAnimationPath));
 
 	m_vTargetPos = osg::Vec3d(121.338, 22.543, -0.0103);
 	SetTargetPara(m_vTargetPos, m_dTargetRotateX, m_dTargetRotateY, m_dTargetRotateZ, m_dTargetScale);
@@ -306,9 +348,38 @@ DataManager::~DataManager()
 bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QString rcsfile)
 {
 	cTime timeStart;
+
 	QVector<dataunit> vecData;
 	if (!gps_rcs_files_read(gpsfile, targpsfile, rcsfile, vecData, timeStart))
- 		return false;
+		return false;
+
+	int nCount = vecData.size();
+	double dIncre = (vecData[nCount - 1].dTime - vecData[0].dTime) / (nCount - 1);
+	for (int i = 0; i < nCount; i++)
+	{
+		vecData[i].dTime = vecData[0].dTime + dIncre * i;
+	}
+
+	int nTemp = 0;
+	double dKey = /*1.8e-6*/0.00005;
+	QVector<dataunit> listData;
+	for (int i = 1; i < nCount; i++)
+	{
+		double dLon = vecData[i].plane_lon - vecData[nTemp].plane_lon;
+		double dLat = vecData[i].plane_lat - vecData[nTemp].plane_lat;
+
+		if (sqrt(dLon * dLon + dLat * dLat) > dKey)
+		{
+			nTemp = i;
+			listData.push_back(vecData[i]);
+		}
+		else
+		{
+			continue;
+		}
+	}
+
+	vecData.clear();
 
 	osg::AnimationPath* animationPathPlane = new osg::AnimationPath;
 	animationPathPlane->setLoopMode(osg::AnimationPath::LOOP);
@@ -320,39 +391,60 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 	m_pTargetAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPathTarget));
 
 	osg::Vec3d scale(m_dScale, m_dScale, m_dScale);
-	double dTime = vecData[0].dTime;
-	int nSize = vecData.size();
+	double dTime = listData[0].dTime;
+	int nSize = listData.size();
+
 	for (int i = 0; i < nSize; i++)
 	{
 		osg::Quat quat;
-		osg::Vec3d position(vecData[i].plane_lon, vecData[i].plane_lat, vecData[i].plane_Height);
+		osg::Vec3d position(listData[i].plane_lon, listData[i].plane_lat, listData[i].plane_Height * 0.00001141); // * 0.00001141转为经纬度
 
 		if (i != 0 && i < nSize - 1)
 		{
 			osg::Vec3 vec0(1.0, 0.0, 0.0);
-			osg::Vec3 vec1(vecData[i + 1].plane_lon - vecData[i - 1].plane_lon, vecData[i + 1].plane_lat - vecData[i - 1].plane_lat, 0.0);
+
+			double dLon = listData[i + 1].plane_lon - listData[i - 1].plane_lon;
+			double dLat = listData[i + 1].plane_lat - listData[i - 1].plane_lat;
+			if (dLon == 0.0 && dLat == 0.0)
+			{
+				continue;
+			}
+
+			osg::Vec3 vec1(dLon, dLat, 0.0);
 
 			quat.makeRotate(vec0, vec1);
 		}
 
-		animationPathPlane->insert(vecData[i].dTime - dTime, osg::AnimationPath::ControlPoint(position, quat, scale));
+		animationPathPlane->insert(listData[i].dTime - dTime, osg::AnimationPath::ControlPoint(position, quat, scale));
 	}
 
 	osg::Vec3d scaleTarget(m_dTargetScale, m_dTargetScale, m_dTargetScale);
 	for (int i = 0; i < nSize; i++)
 	{
 		osg::Quat quat;
-		osg::Vec3d position(vecData[i].target_lon, vecData[i].target_lat, vecData[i].target_Height);
+		osg::Vec3d position(listData[i].target_lon, listData[i].target_lat, listData[i].target_Height *  0.00001141);
 
 		if (i != 0 && i < nSize - 1)
 		{
 			osg::Vec3 vec0(1.0, 0.0, 0.0);
-			osg::Vec3 vec1(vecData[i + 1].target_lon - vecData[i - 1].target_lon, vecData[i + 1].target_lat - vecData[i - 1].target_lat, 0.0);
 
-			quat.makeRotate(vec0, vec1);
+			double dLon = listData[i + 1].target_lon - listData[i - 1].target_lon;
+			double dLat = listData[i + 1].target_lat - listData[i - 1].target_lat;
+
+			if (dLon == 0.0 && dLat == 0.0)
+			{
+				continue;
+			}
+
+			osg::Vec3 vec1(dLon, dLat, 0.0);
 		}
 
-		animationPathTarget->insert(vecData[i].dTime - dTime, osg::AnimationPath::ControlPoint(position, quat, scaleTarget));
+		animationPathTarget->insert(listData[i].dTime - dTime, osg::AnimationPath::ControlPoint(position, quat, scaleTarget));
+	}
+
+	{
+		QMutexLocker locker(&g_MutexData);
+		g_vecData = listData;
 	}
 
 	//加载曲线显示
@@ -371,8 +463,10 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 	g_pSampleThread = new SamplingThread;
 
 	g_pSampleThread->setFrequency(0.05);
-	g_pSampleThread->setAmplitude(160.0);
-	g_pSampleThread->setInterval(10.0);
+	g_pSampleThread->setAmplitude(40);
+	g_pSampleThread->setInterval(10);
+
+	g_pSampleThread->start();
 
 	return true;
 }
@@ -395,71 +489,86 @@ void DataManager::LoadTerrain()
 		m_pTerrainNode = pTerrainGroup;
 		m_pRoot->addChild(m_pTerrainNode);
 
-		//m_pTerrainNode = osgDB::readNodeFile("D:/rcsmodel/qiemo.ive"/*"D:/L19/ttt.ive"*//*"D:/osg3.2.0/taiwan/iso.ive"*/);
-		//m_pRoot->addChild(osgDB::readNodeFile("D:/osg3.2.0/taiwan/iso.ive"));
-		//m_pRoot->addChild(osgDB::readNodeFile("D:/rcsmodel/ooo.ive"));
+		osg::Node* pNodeChina = osgDB::readNodeFile("d:/ive_google/china/china.ive");
 
-		osg::Node* pNode = osgDB::readNodeFile("D:/c/taiwan.ive");
-		pTerrainGroup->addChild(pNode);
+		{
+			osg::StateSet * pStateSet = pNodeChina->getOrCreateStateSet();
+			pStateSet->setRenderBinDetails(-3, "RenderBin");
+		}
 
+		osg::MatrixTransform* pChinaTransform = new osg::MatrixTransform;
+		pChinaTransform->setMatrix(osg::Matrix::translate(osg::Vec3d(0.0, 0.0, -0.001)));
+		pChinaTransform->addChild(pNodeChina);
+		pTerrainGroup->addChild(pChinaTransform);
+
+		{
+			// 			osg::Depth* depth = new osg::Depth;
+			// 			depth->setFunction(osg::Depth::ALWAYS);
+			// 			depth->setRange(1.0, 1.0);
+			//			osg::StateSet * pStateSet = pNode->getOrCreateStateSet();
+			// 			pStateSet->setAttributeAndModes(depth, osg::StateAttribute::ON);
+			// 			pStateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+
+			//			pStateSet->setRenderBinDetails(-2, "RenderBin");
+		}
+
+		osg::Node* pNode = nullptr;
+		//pNode = osgDB::readNodeFile("D:/rcsmodel/sanya_clip.ive");
+		pNode = osgDB::readNodeFile("D:/ive_google/sanya16.ive");
 		osg::StateSet * ss = pNode/*pTerrainGroup*/->getOrCreateStateSet();
-
+		pTerrainGroup->addChild(pNode);		AddOcean(110.112462424978, 18.0959936703065, pTerrainGroup);
 		if (1)
 		{
-// 			osg::ref_ptr<osg::BlendFunc>blendFunc = new osg::BlendFunc();
-// 			blendFunc->setSource(osg::BlendFunc::SRC_ALPHA);
-// 			blendFunc->setDestination(osg::BlendFunc::ONE_MINUS_CONSTANT_ALPHA);
-// 			ss->setAttributeAndModes(blendFunc);
-// 			ss->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);//取消深度测试
-			if (1)
-			{
-				osg::Program * program = new osg::Program;
-				program->addShader(new osg::Shader(osg::Shader::FRAGMENT, fragShader));
-				program->addShader(new osg::Shader(osg::Shader::VERTEX, vertexShader));
+			osg::Program * program = new osg::Program;
+			program->addShader(new osg::Shader(osg::Shader::FRAGMENT, fragShader));
+			program->addShader(new osg::Shader(osg::Shader::VERTEX, vertexShader));
 
-				osg::ref_ptr<osg::Uniform> sampler0 = new osg::Uniform("sampler0", 0);
-				ss->addUniform(sampler0.get());
+			osg::ref_ptr<osg::Uniform> sampler0 = new osg::Uniform("sampler0", 0);
+			ss->addUniform(sampler0.get());
 
-				osg::ref_ptr<osg::Uniform> mcolor = new osg::Uniform("mcolor", osg::Vec4(1.0, 0.0, 0.0, 0.1));
-				//mcolor->setUpdateCallback(new MColorCallback(dTime));
-				ss->addUniform(mcolor.get());
-
-				ss->setAttributeAndModes(program, osg::StateAttribute::OVERRIDE);
-				ss->setMode(GL_BLEND, osg::StateAttribute::ON);
-				ss->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-				ss->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-			}
+			ss->setAttributeAndModes(program, osg::StateAttribute::OVERRIDE);
+			ss->setMode(GL_BLEND, osg::StateAttribute::ON);
+			ss->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 		}
 
 		//pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/west.ive"));
 		//pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/east_little.ive"));
-
-		//return;
-
-		pNode = osgDB::readNodeFile("D:/rcsmodel/sanya_clip.ive");
+		//pNode = osgDB::readNodeFile("D:/rcsmodel/huludao_clip.ive");
+		pNode = osgDB::readNodeFile("D:/ive_google/huludao16.ive");
 		pNode->setStateSet(ss);
 		pTerrainGroup->addChild(pNode);
+		AddOcean(121.061215478138, 40.6654974465535, pTerrainGroup);
 
-		pNode = osgDB::readNodeFile("D:/rcsmodel/huludao_clip.ive");
+		//pNode = osgDB::readNodeFile("D:/rcsmodel/zhoushan_clip.ive");
+		pNode = osgDB::readNodeFile("D:/ive_google/zhoushan16.ive");
 		pNode->setStateSet(ss);
 		pTerrainGroup->addChild(pNode);
+		AddOcean(122.730963656668, 29.829958362075, pTerrainGroup);
 
-		pNode = osgDB::readNodeFile("D:/rcsmodel/zhoushan_clip.ive");
+		//pNode = osgDB::readNodeFile("D:/rcsmodel/qinhuangdao_clip.ive");
+		pNode = osgDB::readNodeFile("D:/ive_google/qinhuangdao16.ive");
 		pNode->setStateSet(ss);
 		pTerrainGroup->addChild(pNode);
+		AddOcean(119.6827079830245, 39.8695409097925, pTerrainGroup);
 
-		pNode = osgDB::readNodeFile("D:/rcsmodel/qinhuangdao_clip.ive");
+		//pNode = osgDB::readNodeFile("D:/rcsmodel/dalianchanghai_clip.ive");
+		pNode = osgDB::readNodeFile("D:/ive_google/dalianchanghai16.ive");
 		pNode->setStateSet(ss);
 		pTerrainGroup->addChild(pNode);
-
-		pNode = osgDB::readNodeFile("D:/rcsmodel/dalianchanghai_clip.ive");
-		pNode->setStateSet(ss);
-		pTerrainGroup->addChild(pNode);
+		AddOcean(122.8398126232475, 38.837338818795, pTerrainGroup);
 
 		pNode = osgDB::readNodeFile("D:/rcsmodel/dunhuang.ive");
 		osg::StateSet* stateset = pNode->getOrCreateStateSet();
-		stateset->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-		stateset->setRenderBinDetails(11, "RenderBin");
+		//osg::Depth* depth = new osg::Depth;
+		//depth->setFunction(osg::Depth::ALWAYS);
+		//depth->setRange(0.0, 0.9);
+
+		//stateset->setAttributeAndModes(depth, osg::StateAttribute::ON);
+		//stateset->setRenderBinDetails(-1, "RenderBin");
+
+		//stateset->setAttributeAndModes(new osg::PolygonOffset(-1.0f, -1.0f), osg::StateAttribute::ON);
+		// 		stateset->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+		// 		stateset->setRenderBinDetails(11, "RenderBin");
 		pTerrainGroup->addChild(pNode);
 
 
@@ -483,7 +592,7 @@ void DataManager::LoadTerrain()
 		pNode->setStateSet(stateset);
 		pTerrainGroup->addChild(pNode);
 
-		pNode = osgDB::readNodeFile("D:/rcsmodel/kuerle.ive");
+		pNode = osgDB::readNodeFile("D:/rcsmodel_new/kuerle.ive");
 		pNode->setStateSet(stateset);
 		pTerrainGroup->addChild(pNode);
 
@@ -665,10 +774,6 @@ void DataManager::GetTargetPara(double& dLon, double& dLat, double& dHeight, dou
 void DataManager::SetTargetPara(const osg::Vec3d& vecPos, double dRotateX
 	, double dRotateY, double dRotateZ, double dScale)
 {
-// 	m_vTargetPos.x() = dLon;
-// 	m_vTargetPos.y() = dLat;
-// 	m_vTargetPos.z() = dHeight;
-
 	m_vTargetPos = vecPos;
 
 	m_dTargetRotateX = dRotateX;
@@ -712,8 +817,6 @@ void DataManager::LoadTargetObject(const QString& strFile)
 
 	m_pTargetLocalMatrixNode->addChild(m_pTargetNode);
 
-	// 		osgUtil::Optimizer optimzer;
-	// 		optimzer.optimize(rootnode);
 }
 
 class OrientationCallback : public osg::NodeCallback
@@ -723,7 +826,11 @@ public:
 	OrientationCallback()
 	{
 		m_dLastTime = 0.0;
+		m_dLastTime2 = 0.0;
+		m_dTimeInterval = 1.0;
 		m_pArray = new osg::Vec3Array();
+
+		m_nState = 0;
 	}
 
 	~OrientationCallback(){}
@@ -732,48 +839,25 @@ public:
 	{
 		if (nv->getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR)
 		{
-			osg::MatrixTransform* pTransform = dynamic_cast<osg::MatrixTransform*>(node);
+			double dTime = nv->getFrameStamp()->getSimulationTime();
+			static double s_dStartTime = dTime;
 
 			osg::Node* pTargetNode = DataManager::Instance()->GetTargetObjectNode();
 			osg::Node* pPlaneNode = DataManager::Instance()->GetAerocraftNode();
-			osg::Node* pBeamNode = DataManager::Instance()->GetRadarBeamNode();
-			
+
 			osg::Vec3 planePos = pPlaneNode->getBound().center() * osg::computeLocalToWorld(pPlaneNode->getParentalNodePaths()[0]);
 			osg::Vec3 targetPos = pTargetNode->getBound().center() * osg::computeLocalToWorld(pTargetNode->getParentalNodePaths()[0]);
-			
-			osg::Matrix matrix;
-			matrix.makeTranslate(planePos);
-			pTransform->setMatrix(matrix);
-
-			osg::Vec3 vec0(0, 0, -1);
-			osg::Vec3 vec1 = targetPos - planePos;
-
-			osg::Geode* pGeode = dynamic_cast<osg::Geode*>(pBeamNode);
-
-			osg::BoundingSphere bound = pBeamNode->getBound();
-
-			osg::Matrix matr;
-			matr.makeTranslate(/*-bound.center()*/osg::Vec3(0.0, 0.0, -(3.0*bound.center().z())));
-			//matr.makeTranslate(-bound.center() * 2.0);
-
-			osg::Matrix maro;
-			maro.makeRotate(vec0, vec1);
-
-			matr.postMult(maro);
-
-			osg::MatrixTransform* pSubTransform = dynamic_cast<osg::MatrixTransform*>(pTransform->getChild(0));
-			pSubTransform->setMatrix(matr);
-
-			//绘制航线
-			double dTime = nv->getFrameStamp()->getSimulationTime();
 
 			if ((dTime - m_dLastTime) > 0.1)
 			{
 				m_dLastTime = dTime;
+
 				m_pArray->push_back(planePos);
 
 				osg::Geode* pPlanePath = DataManager::Instance()->GetPlanePath();
-	
+				if (pPlanePath == nullptr)
+					return;
+
 				osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry();
 				{
 					geometry->setVertexArray(m_pArray.get());
@@ -788,7 +872,98 @@ public:
 				osg::Drawable* pDrawable = pPlanePath->getDrawable(0);
 				pPlanePath->removeDrawable(pDrawable);
 				pPlanePath->addDrawable(geometry.get());
-				//m_pAeroPathLine->addDrawable(geometry.get());
+			}
+			//else if ((dTime - m_dLastTime2) > 0.05)
+			{
+				m_dLastTime2 = dTime;
+				
+				osg::Matrix matrix;
+				osg::MatrixTransform* pTransform = dynamic_cast<osg::MatrixTransform*>(node);
+				matrix.makeTranslate(planePos);
+				pTransform->setMatrix(matrix);
+
+				osg::Switch* pSwitch = dynamic_cast<osg::Switch*>(pTransform->getChild(0));
+
+				osg::Vec3 vec0(0, -1, 0);
+				osg::Vec3 vec1 = targetPos - planePos;
+
+				/*static*/ double dDistance = vec1.length();
+				double dSpeed = 0.05;
+
+				bool bTag = true;
+
+				//根据m_nState来修改s_dStartTime。否则会有问题。
+				if (m_nState == 0)
+				{
+					m_dInterValTemp = dTime;
+					m_nState = 1;
+					s_dStartTime = dTime;
+				}
+
+				if (m_nState == 1 && (dTime - m_dInterValTemp) > m_dTimeInterval)
+				{
+					m_nState = 2;
+					s_dStartTime = dTime;
+				}
+
+				double dSize0 = 2.0;
+				if (m_nState > 1)
+				{
+					pSwitch->setAllChildrenOn();
+					int nChildNum = pSwitch->getNumChildren();
+					for (int i = 0; i < nChildNum; i++)
+					{
+						double dSize = (dTime - s_dStartTime + 0.02 * i)* dSpeed / (dDistance * 2.0);
+						dSize = dSize - (int)dSize;
+						if (i == 0)
+						{
+							dSize0 = dSize;
+						}
+							
+						double dOffset = 0.0;
+						if (dSize < 0.5)
+						{
+							dOffset = dDistance * 2.0 * dSize;
+						}
+						else
+						{
+							dOffset = (1.0 - dSize) * dDistance * 2.0;
+						}
+
+						osg::Matrix masc;
+						masc.makeScale(dSize, dSize, dSize);
+
+						osg::Matrix matr;
+						matr.makeTranslate(0.0, -dOffset, 0.0);
+
+						masc.postMult(matr);
+
+						osg::Matrix maro;
+						maro.makeRotate(vec0, vec1);
+
+						masc.postMult(maro);
+
+						osg::MatrixTransform* pSubTransform = dynamic_cast<osg::MatrixTransform*>(pSwitch->getChild(i));
+						//
+						pSubTransform->setMatrix(masc);
+					}
+				}
+				else
+				{
+					pSwitch->setAllChildrenOff();
+				}
+
+				if (dSize0 > 0.4 && dSize0 < 0.6 && m_nState == 2)
+				{
+					m_nState = 3;
+				}
+
+				if (dSize0 > 0.9/* && dSize0 < 0.1 && dSize0 > m_dLastSize*/ && m_nState == 3)
+				{
+					m_nState = 0;
+				}
+
+				m_dLastSize = dSize0;
 			}
 		}
 
@@ -798,42 +973,61 @@ public:
 protected:
 
 	double m_dLastTime;
+	double m_dLastTime2;
+
+	int m_nState;
+	int m_dLastSize;
+	double m_dTimeInterval;
+	double m_dInterValTemp;
 
 	osg::ref_ptr<osg::Vec3Array> m_pArray;
 
 };
 
-void DataManager::LoadRadarBeam(const QString& strFile)
+osg::Node* createClock()
 {
-	//m_pRadarBeamNode = osgDB::readNodeFile(strFile.toUtf8().data());
+	//表盘的几何节点
+	osg::ref_ptr<osg::Geode> clockGeode = new osg::Geode;
+	//表盘圈
+	osg::ref_ptr<osg::Geometry> clockGeometry = new osg::Geometry;
 
+	//设置线宽
+	osg::ref_ptr<osg::LineWidth> lineSize = new osg::LineWidth;
+	lineSize->setWidth(2.0);
+
+	osg::ref_ptr<osg::StateSet> stateSet = clockGeode->getOrCreateStateSet();
+	//打开线宽属性
+	stateSet->setAttributeAndModes(lineSize, osg::StateAttribute::ON);
+
+	clockGeode->addChild(clockGeometry);
+
+	//存放所有圆盘上的点，把这些点连接成直线画成圆盘
+	osg::ref_ptr<osg::Vec3Array> allPoints = new osg::Vec3Array;
+	//表盘颜色
+	osg::ref_ptr<osg::Vec4Array> colors = new osg::Vec4Array;
+
+	for (double i = 0.0; i < 6.28; i += 0.1)
 	{
-		osg::ref_ptr<osg::Cone>  cone = new osg::Cone;
-		osg::ref_ptr<osg::ShapeDrawable> shap = new osg::ShapeDrawable(cone);
-		osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-		geode->addDrawable(shap);
-
-		m_pRadarBeamNode = geode;
-		cone->setHeight(2);
-		cone->setRadius(0.15);
-		shap->setColor(osg::Vec4(0.0, 1.0, 0.0, 0.3));
-
-		osg::ref_ptr<osg::StateSet> stateset = geode->getOrCreateStateSet();
-		stateset->setMode(GL_BLEND, osg::StateAttribute::ON);
-		stateset->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-
-		osg::ref_ptr<osg::PolygonMode> polyMode = new osg::PolygonMode(osg::PolygonMode::BACK, osg::PolygonMode::FILL);
-		stateset->setAttribute(polyMode);
-		geode.release();
+		colors->push_back(osg::Vec4f(sin(i), cos(i), 0.5, 1.0));
+		allPoints->push_back(osg::Vec3(0.001 * sin(i), -0.0, 0.001 * cos(i)));
 	}
 
-	osgUtil::Optimizer optimzer;
-	optimzer.optimize(m_pRadarBeamNode);
+	//设置顶点
+	clockGeometry->setVertexArray(allPoints);
 
+	//画线
+	clockGeometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINE_LOOP, 0, allPoints->size()));
+	clockGeometry->setColorArray(colors);
+	clockGeometry->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+
+	return clockGeode.release();
+}
+
+void DataManager::LoadRadarBeam(const QString& strFile)
+{
 	if (m_pRadarBeamLocalMatrixNode == nullptr)
 	{
 		m_pRadarBeamLocalMatrixNode = new osg::MatrixTransform;
-		//m_pAerocraftLocalMatrixNode->addChild(m_pRadarBeamLocalMatrixNode);
 		m_pRoot->addChild(m_pRadarBeamLocalMatrixNode);
 	}
 
@@ -844,27 +1038,18 @@ void DataManager::LoadRadarBeam(const QString& strFile)
 		m_pRadarBeamLocalMatrixNode->removeChild(pNode);
 	}
 
-	osg::BoundingSphere bound = m_pAerocraftNode->getBound();
-	osg::BoundingSphere bound2 = m_pRadarBeamNode->getBound();
+	osg::Switch* pSwitch = new osg::Switch;
 
-	osg::MatrixTransform* pNewTransform = new osg::MatrixTransform;
-	pNewTransform->addChild(m_pRadarBeamNode);
+	for (int i = 0; i < 8; i ++)
+	{
+		osg::MatrixTransform* pNewTransform = new osg::MatrixTransform;
+		pNewTransform->addChild(createClock()/*m_pRadarBeamNode*/);
 
-	m_pRadarBeamLocalMatrixNode->addChild(pNewTransform);
-//	
+		pSwitch->addChild(pNewTransform);
+	}
 
-	osg::Matrix matrix = osg::Matrix::translate(bound.center() - bound2.center());
- 	osg::Matrix matrixRotate;
- 	//matrixRotate.makeRotate(osg::inDegrees(45.0), osg::Vec3f(1.0, 0.0, 0.0));
-
-	matrixRotate.postMult(matrix);
-	m_pRadarBeamLocalMatrixNode->setMatrix(matrixRotate);
-
+	m_pRadarBeamLocalMatrixNode->addChild(pSwitch);
 	m_pRadarBeamLocalMatrixNode->setUpdateCallback(new OrientationCallback);
-
-//	m_pRadarBeamLocalMatrixNode->postMult(matrixRotate3);
-
-	//经度121.038, 纬度23.613， 高度0.1， 半径0.8
 }
 
 void DataManager::SetRadarBeamLocalMatrix(double dOffsetX, double dOffsetY, double dOffsetZ, double dRotateX

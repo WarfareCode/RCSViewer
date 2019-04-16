@@ -232,9 +232,9 @@ void Plot::timerEvent(QTimerEvent *event)
 	{
 		updateCurve();
 
-		const double elapsed = d_clock.elapsed() / 1000.0;
-		if (elapsed > d_interval.maxValue())
-			incrementInterval();
+// 		const double elapsed = d_clock.elapsed() / 1000.0;
+// 		if (elapsed > d_interval.maxValue())
+// 			incrementInterval();
 
 		return;
 	}

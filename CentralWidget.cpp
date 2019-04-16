@@ -10,6 +10,7 @@
 #include "Document.h"
 #include "DataType.h"
 #include "MainWindow3D.h"
+#include "DataManager.h"
 
 CentralWidget::CentralWidget(QWidget *parent)
 	: QWidget(parent)
@@ -96,6 +97,8 @@ void CentralWidget::slot3DView()
 {
 	static MainWindow3D* pMainwindow3D = new MainWindow3D;
 	pMainwindow3D->showMaximized();
+
+	DataManager::Instance()->LoadDataAndDisplay("d:/c/airbornegps.gps", "d:/c/targetgps.dat", "d:/c/targetrcs.rcs");
 }
 
 void CentralWidget::slotDelete()

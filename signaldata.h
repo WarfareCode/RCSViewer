@@ -16,6 +16,8 @@ public:
 
     QRectF boundingRect() const;
 
+	void Clear();
+
     void lock();
     void unlock();
 

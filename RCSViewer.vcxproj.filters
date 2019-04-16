@@ -287,6 +287,12 @@
     <ClCompile Include="signaldata.cpp">
       <Filter>qwt</Filter>
     </ClCompile>
+    <ClCompile Include="PlaneLOD.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RadarBeamCallback.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.ui">
@@ -512,6 +518,12 @@
     </ClInclude>
     <ClInclude Include="signaldata.h">
       <Filter>qwt</Filter>
+    </ClInclude>
+    <ClInclude Include="PlaneLOD.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RadarBeamCallback.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

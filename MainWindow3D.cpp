@@ -15,6 +15,7 @@
 #include "videoplayer.h"
 #include <QtWidgets/QMenuBar>
 #include "samplingthread.h"
+#include "signaldata.h"
 
 extern osgViewer::View* g_pView;
 extern SamplingThread* g_pSampleThread;
@@ -96,6 +97,10 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 
 	connect(pActionRadarBeamSettings, SIGNAL(triggered()), this, SLOT(slotRadarBeamPara()));
 
+	QMenu* pMenuTest = menuBar()->addMenu(QString::fromLocal8Bit("测试"));
+	QAction* pActionTest = pMenuTest->addAction("test");
+	connect(pActionTest, SIGNAL(triggered()), this, SLOT(slotTest()));
+
 #if QT_VERSION >= 0x050000
 	// Qt5 is currently crashing and reporting "Cannot make QOpenGLContext current in a different thread" when the viewer is run multi-threaded, this is regression from Qt4
 	osgViewer::ViewerBase::ThreadingModel threadingModel = osgViewer::ViewerBase::SingleThreaded;
@@ -106,7 +111,10 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 	ViewerWidget* viewWidget = new ViewerWidget(threadingModel);
 	setCentralWidget(viewWidget);
 
+	//return;
+
 	QDockWidget* pDockWidget = new QDockWidget;
+	pDockWidget->setWindowTitle(QString::fromLocal8Bit("视频"));
  	VideoPlayer* pPlayer = new VideoPlayer;
  	pDockWidget->setWidget(pPlayer);
 	
@@ -115,11 +123,22 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 
 	m_pPlot = new Plot(this);
 
+	//加载曲线显示
+	if (g_pSampleThread == nullptr)
+	{
+		g_pSampleThread = new SamplingThread;
+
+		g_pSampleThread->setFrequency(0.05);
+		g_pSampleThread->setAmplitude(40);
+		g_pSampleThread->setInterval(10);
+	}
+
 	g_pSampleThread->start();
 	m_pPlot->start();
 	//m_pPlot->setIntervalLength(10.0);
 
 	QDockWidget* pDockWidget2 = new QDockWidget;
+	pDockWidget2->setWindowTitle("RCS");
 	pDockWidget2->setWidget(m_pPlot);
 	addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, pDockWidget2);
 	//pDockWidget2->setFloating(true);
@@ -216,4 +235,11 @@ void MainWindow3D::slotRadarBeamPara()
 {
 	RadarBeamRotateDlg dlg;
 	dlg.exec();
+}
+
+void MainWindow3D::slotTest()
+{
+	SignalData::instance().Clear();
+	m_pPlot->start();
+	m_pPlot->replot();
 }

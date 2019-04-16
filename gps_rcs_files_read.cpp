@@ -58,7 +58,9 @@ bool gps_rcs_files_read(QString gpsfile,
 	//read plane GPS files
 	char line[1024];
 
-	std::ifstream fin(gpsfile.toLocal8Bit().data(), std::ios::in);
+	QByteArray tempArray = gpsfile.toLocal8Bit();
+	char* pPath = tempArray.data();
+	std::ifstream fin(pPath, std::ios::in);
 	long plat_gps_point = 0;
 
 	QStringList plat_time;
@@ -158,8 +160,8 @@ bool gps_rcs_files_read(QString gpsfile,
 		QString cmd = QString("%1").arg(line);
 		if (cmd.isEmpty())continue;
 		QStringList list;
-		list = cmd.split(QRegExp("\\s+"));
-		RCS_raw[rcs_points] = list.at(3).toDouble();
+		list = cmd.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+		RCS_raw[rcs_points] = list.at(2).toDouble();
 		if (rcs_points >= MAX_RCS_POINTS) break;
 
 		rcs_points++;
@@ -201,8 +203,11 @@ bool gps_rcs_files_read(QString gpsfile,
 
 	double *intp_x_tar = new double[rcs_points];
 	double *intp_x_plane = new double[rcs_points];
-	for (long k = 0; k < rcs_points; k++)  intp_x_tar[k] = tar_points*double(k) / rcs_points;
-	for (long k = 0; k < rcs_points; k++)  intp_x_plane[k] = plat_gps_point*double(k) / rcs_points;
+	for (long k = 0; k < rcs_points; k++)  
+		intp_x_tar[k] = tar_points*(double)k / rcs_points;
+
+	for (long k = 0; k < rcs_points; k++)  
+		intp_x_plane[k] = plat_gps_point*(double)k / rcs_points;
 
 	// interp for target gps data
 	LinearIntp(intp_x_tar, tar_lati_intp, rcs_points, tar_lati_raw + tar_loc_sta, tar_points);

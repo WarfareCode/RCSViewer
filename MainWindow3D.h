@@ -36,6 +36,8 @@ public slots:
 
 	void slotRadarBeamPara();
 
+	void slotTest();
+
 private:
 
 	Plot* m_pPlot;

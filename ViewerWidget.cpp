@@ -8,6 +8,7 @@
 #include <osgOcean/Version>
 #include <osgOcean/ShaderManager>
 #include <osg/ComputeBoundsVisitor>
+#include <osg/Depth>
 
 #include "Scene.h"
 
@@ -163,7 +164,7 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 
 	osgQt::GraphicsWindowQt* gw = createGraphicsWindow(0, 0, 100, 100);
 	osgViewer::View* view = new osgViewer::View;
-	view->setLightingMode(osg::View::SKY_LIGHT);
+	view->setLightingMode(osg::View::HEADLIGHT/*SKY_LIGHT*/);
 
 	g_pView = view;
 	addView(view);
@@ -185,39 +186,6 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 	pManager->LoadTerrain();
 	pManager->LoadTargetObject("c:/102202.FBX"/*"c:/a/boat.FBX"*/);
 	pManager->LoadAerocraft("c:/a/plane.FBX");
-
-	{
-		osgOcean::ShaderManager::instance().enableShaders(true);
-// 		osg::ref_ptr<osgOcean::FFTOceanSurface> surface = new osgOcean::FFTOceanSurface(64, 256, 17
-// 			, osg::Vec2(1.1f, 1.1f), 12, 10, 0.8, 1e-8, true, 2.5, 20.0, 256);
-
-// 		osg::ref_ptr<osgOcean::FFTOceanSurface> surface = new osgOcean::FFTOceanSurface(/*64, 256, 17
-// 			, osg::Vec2(1.1f, 1.1f), 12, 10, 0.8, 1e-8, true, 2.5, 1.0, 32*/);
-
-		osg::ref_ptr<osgOcean::FFTOceanSurface> surface = new osgOcean::FFTOceanSurface(32);
-
- 		surface->setWaveScaleFactor(5e-9f);
-// 		surface->setFoamBottomHeight(2.2);
-// 		surface->setFoamTopHeight(3.0);
-// 
-	  	surface->enableCrestFoam(true);
-
-		surface->setLightColor(osg::Vec4f(0.0, 0.0, 1.0, 1.0));
-
-		osg::PositionAttitudeTransform* pTransform = new osg::PositionAttitudeTransform;
-		pTransform->addChild(surface.get());
- 		pTransform->setScale(osg::Vec3d(0.01, 0.01, 0.01)); //台湾
-// 		pTransform->setPosition(osg::Vec3d(121.1, 23.7, -0.004)); //台湾
-
-		//pTransform->setScale(osg::Vec3d(0.01, 0.01, 0.02));
-		pTransform->setPosition(osg::Vec3d(112.66549999999999, 30.998166666666666, 0.0/*-0.004*/));
-
-		//可能缩放变换会造成光照结果过于明亮或暗淡，要在StateSet中允许法线的重缩放模式。
-		pTransform->getOrCreateStateSet()->setMode(GL_RESCALE_NORMAL, osg::StateAttribute::OVERRIDE);
-
-		osg::Group* pRoot = dynamic_cast<osg::Group*>(pManager->GetRootNode());
-		pRoot->addChild(pTransform);
-	}
 
 	//添加多光源
 	if (0)

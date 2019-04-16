@@ -3,13 +3,16 @@
 
 #include <qwt_math.h>
 #include <qmath.h>
+#include <QVector>
+#include <QMutexLocker>
 #include "gps_rcs_files_read.h"
 
 #if QT_VERSION < 0x040600
 #define qFastSin(x) ::sin(x)
 #endif
 
-//extern QVector<dataunit>  g_vecData;
+extern QVector<dataunit>  g_vecData;
+extern QMutex g_MutexData;
 extern QMap<double, dataunit> g_map_data;
 
 SamplingThread::SamplingThread( QObject *parent ):
@@ -43,8 +46,23 @@ void SamplingThread::sample( double elapsed )
 {
     if ( d_frequency > 0.0 )
     {
-        const QPointF s( elapsed, value( elapsed ) );
+		QMutexLocker locker(&g_MutexData);
+       // const QPointF s( elapsed, value( elapsed ) );
+
+		if (g_vecData.empty())
+			return;
+
+		static int s_nIndex = 0;
+		if (s_nIndex >= g_vecData.size())
+		{
+			s_nIndex = 0;
+		}
+
+
+		QPointF s (g_vecData[s_nIndex].angle, g_vecData[s_nIndex].RCS_dB);
         SignalData::instance().append( s );
+
+		s_nIndex ++;
     }
 }
 
