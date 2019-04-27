@@ -20,6 +20,8 @@ public slots:
 
 	void slotSetManipulatorTerrain();
 
+	void slotSetManipulatorAuto();
+
 	void slotLoadAeroplane();
 
 	void slotLoadObservedObj();

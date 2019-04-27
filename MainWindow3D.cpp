@@ -22,6 +22,7 @@ extern SamplingThread* g_pSampleThread;
 
 void SetTerrainManipulator();
 void SetNodeTrackerManipulator(int nIndex = 0);
+void SetAutoManipulator();
 
 // class MyWidget : public QWidget
 // {
@@ -48,21 +49,25 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 	QAction* pActionAero = pMenuManipulator->addAction(QString::fromLocal8Bit("飞行器"));
 	QAction* pActionTarget = pMenuManipulator->addAction(QString::fromLocal8Bit("目标"));
 	QAction* pActionTerrain = pMenuManipulator->addAction(QString::fromLocal8Bit("地面"));
+	QAction* pActionAuto = pMenuManipulator->addAction(QString::fromLocal8Bit("自动视角"));
 
 	pActionAero->setCheckable(true);
 	pActionTarget->setCheckable(true);
 	pActionTerrain->setCheckable(true);
+	pActionAuto->setCheckable(true);
 
-	pActionAero->setChecked(true);
+	pActionAuto->setChecked(true);
 
-	QActionGroup* pActonGroup = new QActionGroup(pMenuManipulator);
-	pActonGroup->addAction(pActionAero);
-	pActonGroup->addAction(pActionTarget);
-	pActonGroup->addAction(pActionTerrain);
+	QActionGroup* pActionGroup = new QActionGroup(pMenuManipulator);
+	pActionGroup->addAction(pActionAero);
+	pActionGroup->addAction(pActionTarget);
+	pActionGroup->addAction(pActionTerrain);
+	pActionGroup->addAction(pActionAuto);
 
 	connect(pActionAero, SIGNAL(triggered()), this, SLOT(slotSetManipulatorAeroplane()));
 	connect(pActionTarget, SIGNAL(triggered()), this, SLOT(slotSetManipulatorTarget()));
 	connect(pActionTerrain, SIGNAL(triggered()), this, SLOT(slotSetManipulatorTerrain()));
+	connect(pActionAuto, SIGNAL(triggered()), this, SLOT(slotSetManipulatorAuto()));
 
 	QMenu* pMenuSettings = menuBar()->addMenu(QString::fromLocal8Bit("飞行器姿态"));
 	QAction* pActionAeroplanePos = pMenuSettings->addAction(QString::fromLocal8Bit("参数设置"));
@@ -171,6 +176,14 @@ void MainWindow3D::slotSetManipulatorTerrain()
 	pAction->setChecked(true);
 
 	SetTerrainManipulator();
+}
+
+void MainWindow3D::slotSetManipulatorAuto()
+{
+	QAction* pAction = qobject_cast<QAction*>(sender());
+	pAction->setChecked(true);
+
+	SetAutoManipulator();
 }
 
 void MainWindow3D::slotLoadAeroplane()

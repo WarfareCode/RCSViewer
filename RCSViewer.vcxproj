@@ -71,7 +71,7 @@
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>C:\Qt\Qt5.6.0\5.6\msvc2013\lib;D:\OpenSceneGraph3.4.0\osgocean\lib\Release;D:\OpenSceneGraph3.4.0\QtitanRibbon\lib\win32;D:\OpenSceneGraph3.4.0\qwt\lib;D:\MyProject\gdal2.2\220\bld\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -84,6 +84,7 @@
     <ClCompile Include="AddClassTypeDlg.cpp" />
     <ClCompile Include="AddDirDlg.cpp" />
     <ClCompile Include="AeroRotateDlg.cpp" />
+    <ClCompile Include="AutoSwitchMatrixManipulator.cpp" />
     <ClCompile Include="CentralWidget.cpp" />
     <ClCompile Include="curvedata.cpp" />
     <ClCompile Include="DataManager.cpp" />
@@ -391,6 +392,7 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQWT_DLL -D_MBCS  "-ID:\OpenSceneGraph3.4.0\OpenSceneGraph-3.4.0\include" "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-ID:\OpenSceneGraph3.4.0\osgocean\include" "-I$(QTDIR)\include\QtSql" "-ID:\OpenSceneGraph3.4.0\QtitanRibbon\include" "-ID:\OpenSceneGraph3.4.0\qwt\src" "-ID:\MyProject\gdal2.2\220\bld\include"</Command>
     </CustomBuild>
+    <ClInclude Include="AutoSwitchMatrixManipulator.h" />
     <ClInclude Include="curvedata.h" />
     <ClInclude Include="Document.h" />
     <CustomBuild Include="EditClassTypeDlg.h">

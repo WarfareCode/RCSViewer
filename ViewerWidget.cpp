@@ -9,6 +9,8 @@
 #include <osgOcean/ShaderManager>
 #include <osg/ComputeBoundsVisitor>
 #include <osg/Depth>
+#include <gps_rcs_files_read.h>
+#include "AutoSwitchMatrixManipulator.h"
 
 #include "Scene.h"
 
@@ -154,6 +156,88 @@ void SetNodeTrackerManipulator(int nNodeIndex = 0)
 	pManipulator->setMinimumDistance(0.002);
 }
 
+void SetAutoManipulator()
+{
+	double dLeft, dTop, dRight, dBottom, dH;
+	bool bTag = false;
+	extern QVector<dataunit>  g_vecData;
+	for (auto& dataUnit : g_vecData)
+	{
+		if (!bTag)
+		{
+			bTag = !bTag;
+			dLeft = dataUnit.plane_lon;
+			dRight = dataUnit.plane_lon;
+			dTop = dataUnit.plane_lat;
+			dBottom = dataUnit.plane_lat;
+			dH = dataUnit.plane_Height;
+		}
+		else
+		{
+			if (dLeft > dataUnit.plane_lon)
+			{
+				dLeft = dataUnit.plane_lon;
+			}
+
+			if (dRight < dataUnit.plane_lon)
+			{
+				dRight = dataUnit.plane_lon;
+			}
+
+			if (dTop < dataUnit.plane_lat)
+			{
+				dTop = dataUnit.plane_lat;
+			}
+
+			if (dBottom > dataUnit.plane_lat)
+			{
+				dBottom = dataUnit.plane_lat;
+			}
+		}
+	}
+
+	int nSize = g_vecData.size();
+	double dTime = g_vecData[0].dTime;
+
+	osg::Vec3d position((dRight + dLeft) * 0.5, dBottom - (dTop - dBottom) , dH * 0.00001141 * 0.5);
+	osg::Vec3d position2 = position;
+	position2.z() = dH * 0.00001141 + (dRight - dLeft) * 1.5;
+
+	osg::Vec3d position3((dRight + dLeft) * 0.5, (dBottom + dTop) * 0.5, position2.z());
+
+	osg::AnimationPath* animationPath = new osg::AnimationPath;
+	animationPath->setLoopMode(osg::AnimationPath::LOOP);
+
+	osg::Quat quat;
+	quat.makeRotate(osg::Vec3d(0.0, 0.0, -1.0), osg::Vec3d(0.0, 1.0, 0.0));
+	animationPath->insert(0.0, osg::AnimationPath::ControlPoint(position, quat));
+	animationPath->insert(3.0, osg::AnimationPath::ControlPoint(position, quat));
+
+	osg::Quat quat2;
+	quat2.makeRotate(osg::Vec3d(0.0, 0.0, -1.0), osg::Vec3d(0.0, 1.0, -1.6));
+	animationPath->insert(4.5, osg::AnimationPath::ControlPoint(position2, quat2));
+	animationPath->insert(6.0, osg::AnimationPath::ControlPoint(position3));
+	animationPath->insert(9.0, osg::AnimationPath::ControlPoint(position3));
+
+	osgGA::AnimationPathManipulator *animationPathMp = new osgGA::AnimationPathManipulator();
+	animationPathMp->setAnimationPath(animationPath);
+
+	osgGA::AutoSwitchMatrixManipulator* pAutoManipulator = new osgGA::AutoSwitchMatrixManipulator;
+
+	DataManager* pManager = DataManager::Instance();
+	osgGA::NodeTrackerManipulator* pTrackTarget = new MyNodeTrackerManipulator;
+	pTrackTarget->setTrackNode(pManager->GetTargetObjectNode());
+
+	osgGA::NodeTrackerManipulator* pTrackPlane = new MyNodeTrackerManipulator;
+	pTrackPlane->setTrackNode(pManager->GetAerocraftNode());
+
+	pAutoManipulator->AddManipulator(pTrackPlane);
+	pAutoManipulator->AddManipulator(pTrackTarget);
+	pAutoManipulator->AddManipulator(animationPathMp);
+
+	g_pView->setCameraManipulator(pAutoManipulator);
+}
+
 ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel) : QWidget()
 {
 	setMinimumSize(QSize(400, 300));
@@ -241,8 +325,9 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 	// Âþ·´Éä¹â
 	view->getLight()->setDiffuse(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
-	//SetNodeTrackerManipulator();
-	SetTerrainManipulator();
+	SetNodeTrackerManipulator();
+	//SetTerrainManipulator();
+	//SetAutoManipulator();
 
 	QWidget* widget1 = gw->getGLWidget();
 

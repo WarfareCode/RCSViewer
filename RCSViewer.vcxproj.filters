@@ -293,6 +293,9 @@
     <ClCompile Include="RadarBeamCallback.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AutoSwitchMatrixManipulator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.ui">
@@ -523,6 +526,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RadarBeamCallback.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AutoSwitchMatrixManipulator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

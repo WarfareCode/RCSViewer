@@ -898,26 +898,55 @@ public:
 					m_dInterValTemp = dTime;
 					m_nState = 1;
 					s_dStartTime = dTime;
+
+					pSwitch->setAllChildrenOff();
 				}
 
 				if (m_nState == 1 && (dTime - m_dInterValTemp) > m_dTimeInterval)
 				{
 					m_nState = 2;
 					s_dStartTime = dTime;
+
+					pSwitch->setAllChildrenOn();
 				}
 
+				
 				double dSize0 = 2.0;
 				if (m_nState > 1)
 				{
-					pSwitch->setAllChildrenOn();
+					
 					int nChildNum = pSwitch->getNumChildren();
 					for (int i = 0; i < nChildNum; i++)
 					{
-						double dSize = (dTime - s_dStartTime + 0.02 * i)* dSpeed / (dDistance * 2.0);
+						double dSize = (dTime - s_dStartTime - 0.02 * i)* dSpeed / (dDistance * 2.0);
 						dSize = dSize - (int)dSize;
-						if (i == 0)
+						if (i == nChildNum - 1)
 						{
 							dSize0 = dSize;
+						}
+
+						if (dSize >= 0.0)
+						{
+							pSwitch->setValue(i, true);
+						}
+						else
+						{
+							pSwitch->setValue(i, false);
+						}
+
+						//printf("%lf\n", dSize);
+
+//   						if (dSize > 0.95)
+//   						{
+//   							pSwitch->setValue(i, false);
+//   						}
+
+						if (m_nState == 3)
+						{
+							if (dSize < 0.4)
+							{
+								pSwitch->setValue(i, false);
+							}
 						}
 							
 						double dOffset = 0.0;
@@ -948,18 +977,16 @@ public:
 						pSubTransform->setMatrix(masc);
 					}
 				}
-				else
-				{
-					pSwitch->setAllChildrenOff();
-				}
 
-				if (dSize0 > 0.4 && dSize0 < 0.6 && m_nState == 2)
+				if (dSize0 > 0.5 /*&& dSize0 < 0.55 */&& m_nState == 2)
 				{
 					m_nState = 3;
+					//pSwitch->setAllChildrenOff();
 				}
 
 				if (dSize0 > 0.9/* && dSize0 < 0.1 && dSize0 > m_dLastSize*/ && m_nState == 3)
 				{
+					pSwitch->setAllChildrenOff();
 					m_nState = 0;
 				}
 
@@ -1040,7 +1067,7 @@ void DataManager::LoadRadarBeam(const QString& strFile)
 
 	osg::Switch* pSwitch = new osg::Switch;
 
-	for (int i = 0; i < 8; i ++)
+	for (int i = 0; i < 16; i ++)
 	{
 		osg::MatrixTransform* pNewTransform = new osg::MatrixTransform;
 		pNewTransform->addChild(createClock()/*m_pRadarBeamNode*/);
