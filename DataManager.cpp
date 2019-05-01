@@ -49,6 +49,8 @@ QMutex g_MutexData;
 
 osgOcean::FFTOceanSurface* g_surface = nullptr;
 
+void SetAutoManipulator(double dLeft, double dTop, double dRight, double dBottom, double dH);
+
 void AddOcean(double dLon, double dLat, osg::Group* pParent)
 {
 	osgOcean::ShaderManager::instance().enableShaders(true);
@@ -345,6 +347,16 @@ DataManager::~DataManager()
 {
 }
 
+void DataManager::GetPlanePathEnv(double& dx1, double& dy1, double& dx2, double& dy2, double& dH)
+{
+	dx1 = m_dLeft;
+	dy1 = m_dBottom;
+
+	dx2 = m_dRight;
+	dy2 = m_dTop;
+	dH = m_dH;
+}
+
 bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QString rcsfile)
 {
 	cTime timeStart;
@@ -362,7 +374,19 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 
 	int nTemp = 0;
 	double dKey = /*1.8e-6*/0.00005;
+
+	if (vecData.isEmpty())
+		return false;
+
+	m_dLeft = vecData[0].plane_lon;
+	m_dRight = vecData[0].plane_lon;
+	m_dTop = vecData[0].plane_lat;
+	m_dBottom = vecData[0].plane_lat;
+	m_dH = vecData[0].plane_Height;
+
 	QVector<dataunit> listData;
+	listData.push_back(vecData[0]);
+
 	for (int i = 1; i < nCount; i++)
 	{
 		double dLon = vecData[i].plane_lon - vecData[nTemp].plane_lon;
@@ -372,6 +396,18 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 		{
 			nTemp = i;
 			listData.push_back(vecData[i]);
+
+			if (m_dLeft > vecData[i].plane_lon)
+				m_dLeft = vecData[i].plane_lon;
+
+			if (m_dRight < vecData[i].plane_lon)
+				m_dRight = vecData[i].plane_lon;
+
+			if (m_dTop < vecData[i].plane_lat)
+				m_dTop = vecData[i].plane_lat;
+
+			if (m_dBottom > vecData[i].plane_lat)
+				m_dBottom = vecData[i].plane_lat;
 		}
 		else
 		{
@@ -468,6 +504,7 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 
 	g_pSampleThread->start();
 
+	SetAutoManipulator(m_dLeft, m_dTop, m_dRight, m_dBottom, m_dH);
 	return true;
 }
 

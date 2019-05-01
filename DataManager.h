@@ -69,6 +69,7 @@ public:
 	void SetTargetPara(const osg::Vec3d& vecPos, double dRotateX
 		, double dRotateY, double dRotateZ, double dScale);
 
+	void GetPlanePathEnv(double& dx1, double& dy1, double& dx2, double& dy2, double& dH);
 protected:
 
 	osg::Group* m_pRoot;
@@ -140,6 +141,13 @@ protected:
 	double m_dRadarScale;
 
 	osg::MatrixTransform* m_pRadarBeamLocalMatrixNode;
+
+	//·É»ú·ÉÐÐ¹ì¼£µÄ·¶Î§
+	double m_dLeft;
+	double m_dTop;
+	double m_dRight;
+	double m_dBottom;
+	double m_dH;
 
 	DataManager();
 	virtual ~DataManager();

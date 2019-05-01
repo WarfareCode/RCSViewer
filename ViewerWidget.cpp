@@ -156,49 +156,8 @@ void SetNodeTrackerManipulator(int nNodeIndex = 0)
 	pManipulator->setMinimumDistance(0.002);
 }
 
-void SetAutoManipulator()
+void SetAutoManipulator(double dLeft, double dTop, double dRight, double dBottom, double dH)
 {
-	double dLeft, dTop, dRight, dBottom, dH;
-	bool bTag = false;
-	extern QVector<dataunit>  g_vecData;
-	for (auto& dataUnit : g_vecData)
-	{
-		if (!bTag)
-		{
-			bTag = !bTag;
-			dLeft = dataUnit.plane_lon;
-			dRight = dataUnit.plane_lon;
-			dTop = dataUnit.plane_lat;
-			dBottom = dataUnit.plane_lat;
-			dH = dataUnit.plane_Height;
-		}
-		else
-		{
-			if (dLeft > dataUnit.plane_lon)
-			{
-				dLeft = dataUnit.plane_lon;
-			}
-
-			if (dRight < dataUnit.plane_lon)
-			{
-				dRight = dataUnit.plane_lon;
-			}
-
-			if (dTop < dataUnit.plane_lat)
-			{
-				dTop = dataUnit.plane_lat;
-			}
-
-			if (dBottom > dataUnit.plane_lat)
-			{
-				dBottom = dataUnit.plane_lat;
-			}
-		}
-	}
-
-	int nSize = g_vecData.size();
-	double dTime = g_vecData[0].dTime;
-
 	osg::Vec3d position((dRight + dLeft) * 0.5, dBottom - (dTop - dBottom) , dH * 0.00001141 * 0.5);
 	osg::Vec3d position2 = position;
 	position2.z() = dH * 0.00001141 + (dRight - dLeft) * 1.5;

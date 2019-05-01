@@ -22,7 +22,7 @@ extern SamplingThread* g_pSampleThread;
 
 void SetTerrainManipulator();
 void SetNodeTrackerManipulator(int nIndex = 0);
-void SetAutoManipulator();
+void SetAutoManipulator(double, double, double, double, double);
 
 // class MyWidget : public QWidget
 // {
@@ -183,7 +183,9 @@ void MainWindow3D::slotSetManipulatorAuto()
 	QAction* pAction = qobject_cast<QAction*>(sender());
 	pAction->setChecked(true);
 
-	SetAutoManipulator();
+	double dx1, dy1, dx2, dy2, dH;
+	DataManager::Instance()->GetPlanePathEnv(dx1, dy1, dx2, dy2, dH);
+	SetAutoManipulator(dx1, dy2, dx2, dy1, dH);
 }
 
 void MainWindow3D::slotLoadAeroplane()
