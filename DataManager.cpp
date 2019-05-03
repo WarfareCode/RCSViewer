@@ -16,6 +16,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QVector>
 #include <QtCore/QTime>
+#include <QtCore/QMap>
 #include "gps_rcs_files_read.h"
 #include "samplingthread.h"
 #include "PlaneLOD.h"
@@ -23,8 +24,10 @@
 #include <osgOcean/FFTOceanSurface>
 #include <osg/PolygonOffset>
 #include <osg/Switch>
+#include "plot.h"
 
-extern SamplingThread* g_pSampleThread;
+SamplingThread* g_pSampleThread = nullptr;
+Plot* g_pPlot = nullptr;
 
 static char * vertexShader = {
 	"void main(void ){\n"
@@ -44,7 +47,7 @@ static char * fragShader = {
 
 DataManager* g_DataManager = nullptr;
 
-QVector<dataunit> g_vecData;
+QMap<double, dataunit*> g_mapData;
 QMutex g_MutexData;
 
 osgOcean::FFTOceanSurface* g_surface = nullptr;
@@ -361,15 +364,15 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 {
 	cTime timeStart;
 
-	QVector<dataunit> vecData;
+	QVector<dataunit*> vecData;
 	if (!gps_rcs_files_read(gpsfile, targpsfile, rcsfile, vecData, timeStart))
 		return false;
 
 	int nCount = vecData.size();
-	double dIncre = (vecData[nCount - 1].dTime - vecData[0].dTime) / (nCount - 1);
+	double dIncre = (vecData[nCount - 1]->dTime - vecData[0]->dTime) / (nCount - 1);
 	for (int i = 0; i < nCount; i++)
 	{
-		vecData[i].dTime = vecData[0].dTime + dIncre * i;
+		vecData[i]->dTime = vecData[0]->dTime + dIncre * i;
 	}
 
 	int nTemp = 0;
@@ -378,44 +381,51 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 	if (vecData.isEmpty())
 		return false;
 
-	m_dLeft = vecData[0].plane_lon;
-	m_dRight = vecData[0].plane_lon;
-	m_dTop = vecData[0].plane_lat;
-	m_dBottom = vecData[0].plane_lat;
-	m_dH = vecData[0].plane_Height;
+	m_dLeft = vecData[0]->plane_lon;
+	m_dRight = vecData[0]->plane_lon;
+	m_dTop = vecData[0]->plane_lat;
+	m_dBottom = vecData[0]->plane_lat;
+	m_dH = vecData[0]->plane_Height;
 
-	QVector<dataunit> listData;
+	QVector<dataunit*> listData;
 	listData.push_back(vecData[0]);
 
 	for (int i = 1; i < nCount; i++)
 	{
-		double dLon = vecData[i].plane_lon - vecData[nTemp].plane_lon;
-		double dLat = vecData[i].plane_lat - vecData[nTemp].plane_lat;
+		double dLon = vecData[i]->plane_lon - vecData[nTemp]->plane_lon;
+		double dLat = vecData[i]->plane_lat - vecData[nTemp]->plane_lat;
 
 		if (sqrt(dLon * dLon + dLat * dLat) > dKey)
 		{
 			nTemp = i;
 			listData.push_back(vecData[i]);
 
-			if (m_dLeft > vecData[i].plane_lon)
-				m_dLeft = vecData[i].plane_lon;
+			//求出飞行路线的外接范围。
+			if (m_dLeft > vecData[i]->plane_lon)
+				m_dLeft = vecData[i]->plane_lon;
 
-			if (m_dRight < vecData[i].plane_lon)
-				m_dRight = vecData[i].plane_lon;
+			if (m_dRight < vecData[i]->plane_lon)
+				m_dRight = vecData[i]->plane_lon;
 
-			if (m_dTop < vecData[i].plane_lat)
-				m_dTop = vecData[i].plane_lat;
+			if (m_dTop < vecData[i]->plane_lat)
+				m_dTop = vecData[i]->plane_lat;
 
-			if (m_dBottom > vecData[i].plane_lat)
-				m_dBottom = vecData[i].plane_lat;
+			if (m_dBottom > vecData[i]->plane_lat)
+				m_dBottom = vecData[i]->plane_lat;
 		}
 		else
 		{
+			dataunit* pUnit = vecData[i];
+			delete pUnit;
+			pUnit = nullptr;
+
 			continue;
 		}
 	}
 
 	vecData.clear();
+	if (listData.isEmpty())
+		return false;
 
 	osg::AnimationPath* animationPathPlane = new osg::AnimationPath;
 	animationPathPlane->setLoopMode(osg::AnimationPath::LOOP);
@@ -427,20 +437,20 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 	m_pTargetAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPathTarget));
 
 	osg::Vec3d scale(m_dScale, m_dScale, m_dScale);
-	double dTime = listData[0].dTime;
+	double dTime = listData[0]->dTime;
 	int nSize = listData.size();
 
 	for (int i = 0; i < nSize; i++)
 	{
 		osg::Quat quat;
-		osg::Vec3d position(listData[i].plane_lon, listData[i].plane_lat, listData[i].plane_Height * 0.00001141); // * 0.00001141转为经纬度
+		osg::Vec3d position(listData[i]->plane_lon, listData[i]->plane_lat, listData[i]->plane_Height * 0.00001141); // * 0.00001141转为经纬度
 
 		if (i != 0 && i < nSize - 1)
 		{
 			osg::Vec3 vec0(1.0, 0.0, 0.0);
 
-			double dLon = listData[i + 1].plane_lon - listData[i - 1].plane_lon;
-			double dLat = listData[i + 1].plane_lat - listData[i - 1].plane_lat;
+			double dLon = listData[i + 1]->plane_lon - listData[i - 1]->plane_lon;
+			double dLat = listData[i + 1]->plane_lat - listData[i - 1]->plane_lat;
 			if (dLon == 0.0 && dLat == 0.0)
 			{
 				continue;
@@ -451,21 +461,21 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 			quat.makeRotate(vec0, vec1);
 		}
 
-		animationPathPlane->insert(listData[i].dTime - dTime, osg::AnimationPath::ControlPoint(position, quat, scale));
+		animationPathPlane->insert(listData[i]->dTime - dTime, osg::AnimationPath::ControlPoint(position, quat, scale));
 	}
 
 	osg::Vec3d scaleTarget(m_dTargetScale, m_dTargetScale, m_dTargetScale);
 	for (int i = 0; i < nSize; i++)
 	{
 		osg::Quat quat;
-		osg::Vec3d position(listData[i].target_lon, listData[i].target_lat, listData[i].target_Height *  0.00001141);
+		osg::Vec3d position(listData[i]->target_lon, listData[i]->target_lat, listData[i]->target_Height *  0.00001141);
 
 		if (i != 0 && i < nSize - 1)
 		{
 			osg::Vec3 vec0(1.0, 0.0, 0.0);
 
-			double dLon = listData[i + 1].target_lon - listData[i - 1].target_lon;
-			double dLat = listData[i + 1].target_lat - listData[i - 1].target_lat;
+			double dLon = listData[i + 1]->target_lon - listData[i - 1]->target_lon;
+			double dLat = listData[i + 1]->target_lat - listData[i - 1]->target_lat;
 
 			if (dLon == 0.0 && dLat == 0.0)
 			{
@@ -475,21 +485,51 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 			osg::Vec3 vec1(dLon, dLat, 0.0);
 		}
 
-		animationPathTarget->insert(listData[i].dTime - dTime, osg::AnimationPath::ControlPoint(position, quat, scaleTarget));
+		animationPathTarget->insert(listData[i]->dTime - dTime, osg::AnimationPath::ControlPoint(position, quat, scaleTarget));
 	}
 
 	{
 		QMutexLocker locker(&g_MutexData);
-		g_vecData = listData;
+
+		for (QMap<double, dataunit*>::Iterator itr = g_mapData.begin(); itr != g_mapData.end(); itr ++)
+		{
+			dataunit* pUnit = itr.value();
+			delete pUnit;
+			pUnit = nullptr;
+		}
+
+		g_mapData.clear();
+		double dTimeFirst = listData[0]->dTime;
+
+		for (QVector<dataunit*>::Iterator itr = listData.begin(); itr != listData.end(); itr ++)
+		{
+			double dTime = (*itr)->dTime - dTimeFirst;
+
+			QMap<double, dataunit*>::Iterator itrMap = g_mapData.find(dTime);
+			if (itrMap == g_mapData.end())
+			{
+				g_mapData.insert(dTime, *itr);
+			}
+			else
+			{
+				delete *itr;
+			}
+		}
+
+		listData.clear();
+
+		//g_vecData = listData;
 	}
+
+	g_pPlot->replot();
 
 	//加载曲线显示
 	if (g_pSampleThread)
 	{
 		if (g_pSampleThread->isRunning())
 		{
-			g_pSampleThread->stop();
-			g_pSampleThread->wait(1000);
+			g_pSampleThread->Cancel();
+			//g_pSampleThread->wait(1000);
 		}
 
 		delete g_pSampleThread;
@@ -721,7 +761,8 @@ double DataManager::GetAerocraftScale()
 
 osg::Node* DataManager::GetRadarBeamNode()
 {
-	return m_pRadarBeamNode;
+	return m_pRadarBeamLocalMatrixNode;
+	//return m_pRadarBeamNode;
 }
 
 osg::Node* DataManager::GetAerocraftNode()
@@ -872,6 +913,11 @@ public:
 
 	~OrientationCallback(){}
 
+	void Clear()
+	{
+		m_pArray->clear();
+	}
+
 	virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
 	{
 		if (nv->getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR)
@@ -910,7 +956,7 @@ public:
 				pPlanePath->removeDrawable(pDrawable);
 				pPlanePath->addDrawable(geometry.get());
 			}
-			//else if ((dTime - m_dLastTime2) > 0.05)
+			else if ((dTime - m_dLastTime2) > 0.025)
 			{
 				m_dLastTime2 = dTime;
 				
@@ -1085,6 +1131,25 @@ osg::Node* createClock()
 	clockGeometry->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
 
 	return clockGeode.release();
+}
+
+void DataManager::ClearPlanePathLine()
+{
+	osg::Callback* pCallback = m_pRadarBeamLocalMatrixNode->getUpdateCallback();
+	OrientationCallback* pOrientationCallback = dynamic_cast<OrientationCallback*>(pCallback);
+	
+	pOrientationCallback->Clear();
+}
+
+void DataManager::ResetAnimationPath()
+{
+	osg::Callback* pCallback = m_pAerocraftAnimationNode->getUpdateCallback();
+	osg::AnimationPathCallback* pAnimationCallback = dynamic_cast<osg::AnimationPathCallback*>(pCallback);
+	pAnimationCallback->reset();
+
+	pCallback = m_pTargetAnimationNode->getUpdateCallback();
+	pAnimationCallback = dynamic_cast<osg::AnimationPathCallback*>(pCallback);
+	pAnimationCallback->reset();
 }
 
 void DataManager::LoadRadarBeam(const QString& strFile)

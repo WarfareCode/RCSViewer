@@ -70,6 +70,13 @@ public:
 		, double dRotateY, double dRotateZ, double dScale);
 
 	void GetPlanePathEnv(double& dx1, double& dy1, double& dx2, double& dy2, double& dH);
+
+	//清空飞机轨迹线
+	void ClearPlanePathLine();
+
+	//充值动画位置
+	void ResetAnimationPath();
+
 protected:
 
 	osg::Group* m_pRoot;

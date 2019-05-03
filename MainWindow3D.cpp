@@ -19,6 +19,7 @@
 
 extern osgViewer::View* g_pView;
 extern SamplingThread* g_pSampleThread;
+extern Plot* g_pPlot;
 
 void SetTerrainManipulator();
 void SetNodeTrackerManipulator(int nIndex = 0);
@@ -69,41 +70,41 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 	connect(pActionTerrain, SIGNAL(triggered()), this, SLOT(slotSetManipulatorTerrain()));
 	connect(pActionAuto, SIGNAL(triggered()), this, SLOT(slotSetManipulatorAuto()));
 
-	QMenu* pMenuSettings = menuBar()->addMenu(QString::fromLocal8Bit("飞行器姿态"));
-	QAction* pActionAeroplanePos = pMenuSettings->addAction(QString::fromLocal8Bit("参数设置"));
+	//QMenu* pMenuSettings = menuBar()->addMenu(QString::fromLocal8Bit("飞行器姿态"));
+	//QAction* pActionAeroplanePos = pMenuSettings->addAction(QString::fromLocal8Bit("参数设置"));
 
-	connect(pActionAeroplanePos, SIGNAL(triggered()), this, SLOT(slotSetAeroplaneMatrix()));
+	//connect(pActionAeroplanePos, SIGNAL(triggered()), this, SLOT(slotSetAeroplaneMatrix()));
 
-	QMenu* pMenuAeroplanePath = menuBar()->addMenu(QString::fromLocal8Bit("飞行轨迹"));
-	QAction* pCirclePath = pMenuAeroplanePath->addAction(QString::fromLocal8Bit("环形"));
-	QAction* pLinePath = pMenuAeroplanePath->addAction(QString::fromLocal8Bit("直线"));
-	pMenuAeroplanePath->addSeparator();
-	QAction* pActionPathPara = pMenuAeroplanePath->addAction(QString::fromLocal8Bit("参数设置"));
+	//QMenu* pMenuAeroplanePath = menuBar()->addMenu(QString::fromLocal8Bit("飞行轨迹"));
+	//QAction* pCirclePath = pMenuAeroplanePath->addAction(QString::fromLocal8Bit("环形"));
+	//QAction* pLinePath = pMenuAeroplanePath->addAction(QString::fromLocal8Bit("直线"));
+	//pMenuAeroplanePath->addSeparator();
+	//QAction* pActionPathPara = pMenuAeroplanePath->addAction(QString::fromLocal8Bit("参数设置"));
 
-	pCirclePath->setCheckable(true);
-	pCirclePath->setChecked(true);
-	pLinePath->setCheckable(true);
+	//pCirclePath->setCheckable(true);
+	//pCirclePath->setChecked(true);
+	//pLinePath->setCheckable(true);
 
-	QActionGroup* pActonGroup2 = new QActionGroup(pMenuAeroplanePath);
-	pActonGroup2->addAction(pCirclePath);
-	pActonGroup2->addAction(pLinePath);
+	//QActionGroup* pActonGroup2 = new QActionGroup(pMenuAeroplanePath);
+	//pActonGroup2->addAction(pCirclePath);
+	//pActonGroup2->addAction(pLinePath);
 
-	connect(pCirclePath, SIGNAL(triggered()), this, SLOT(slotCirclePath()));
-	connect(pLinePath, SIGNAL(triggered()), this, SLOT(slotLinePath()));
-	connect(pActionPathPara, SIGNAL(triggered()), this, SLOT(slotPathPara()));
+	//connect(pCirclePath, SIGNAL(triggered()), this, SLOT(slotCirclePath()));
+	//connect(pLinePath, SIGNAL(triggered()), this, SLOT(slotLinePath()));
+	//connect(pActionPathPara, SIGNAL(triggered()), this, SLOT(slotPathPara()));
 
-	QMenu* pMenuTargetSettings = menuBar()->addMenu(QString::fromLocal8Bit("目标参数"));
-	QAction* pActionTargetSettings = pMenuTargetSettings->addAction(QString::fromLocal8Bit("设置"));
+	//QMenu* pMenuTargetSettings = menuBar()->addMenu(QString::fromLocal8Bit("目标参数"));
+	//QAction* pActionTargetSettings = pMenuTargetSettings->addAction(QString::fromLocal8Bit("设置"));
 
-	connect(pActionTargetSettings, SIGNAL(triggered()), this, SLOT(slotTargetPara()));
+	//connect(pActionTargetSettings, SIGNAL(triggered()), this, SLOT(slotTargetPara()));
 
-	QMenu* pMenuRadarBeamSettings = menuBar()->addMenu(QString::fromLocal8Bit("波束方向"));
-	QAction* pActionRadarBeamSettings = pMenuRadarBeamSettings->addAction(QString::fromLocal8Bit("设置"));
+	//QMenu* pMenuRadarBeamSettings = menuBar()->addMenu(QString::fromLocal8Bit("波束方向"));
+	//QAction* pActionRadarBeamSettings = pMenuRadarBeamSettings->addAction(QString::fromLocal8Bit("设置"));
 
-	connect(pActionRadarBeamSettings, SIGNAL(triggered()), this, SLOT(slotRadarBeamPara()));
+	//connect(pActionRadarBeamSettings, SIGNAL(triggered()), this, SLOT(slotRadarBeamPara()));
 
-	QMenu* pMenuTest = menuBar()->addMenu(QString::fromLocal8Bit("测试"));
-	QAction* pActionTest = pMenuTest->addAction("test");
+	QMenu* pMenuTest = menuBar()->addMenu(QString::fromLocal8Bit("动画"));
+	QAction* pActionTest = pMenuTest->addAction(QString::fromLocal8Bit("重置"));
 	connect(pActionTest, SIGNAL(triggered()), this, SLOT(slotTest()));
 
 #if QT_VERSION >= 0x050000
@@ -127,18 +128,9 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 	//pDockWidget->setFloating(true);
 
 	m_pPlot = new Plot(this);
+	g_pPlot = m_pPlot;
 
 	//加载曲线显示
-	if (g_pSampleThread == nullptr)
-	{
-		g_pSampleThread = new SamplingThread;
-
-		g_pSampleThread->setFrequency(0.05);
-		g_pSampleThread->setAmplitude(40);
-		g_pSampleThread->setInterval(10);
-	}
-
-	g_pSampleThread->start();
 	m_pPlot->start();
 	//m_pPlot->setIntervalLength(10.0);
 
@@ -255,6 +247,32 @@ void MainWindow3D::slotRadarBeamPara()
 void MainWindow3D::slotTest()
 {
 	SignalData::instance().Clear();
+
+	//加载曲线显示
+	if (g_pSampleThread)
+	{
+		if (g_pSampleThread->isRunning())
+		{
+			g_pSampleThread->Cancel();
+			//g_pSampleThread->wait(1000);
+		}
+
+		delete g_pSampleThread;
+		g_pSampleThread = nullptr;
+	}
+
+	g_pSampleThread = new SamplingThread;
+
+	g_pSampleThread->setFrequency(0.05);
+	g_pSampleThread->setAmplitude(40);
+	g_pSampleThread->setInterval(10);
+
+	g_pSampleThread->start();
+
 	m_pPlot->start();
 	m_pPlot->replot();
+
+	DataManager* pDataManager = DataManager::Instance();
+	pDataManager->ClearPlanePathLine();
+	pDataManager->ResetAnimationPath();
 }

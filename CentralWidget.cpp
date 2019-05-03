@@ -98,6 +98,12 @@ void CentralWidget::slot3DView()
 	static MainWindow3D* pMainwindow3D = new MainWindow3D;
 	pMainwindow3D->showMaximized();
 
+	QModelIndexList indexes = ui.tableView->selectionModel()->selectedIndexes();
+	if (indexes.isEmpty())
+		return;
+
+	QModelIndex modelIndex = indexes[0];
+
 	DataManager::Instance()->LoadDataAndDisplay("d:/c/airbornegps.gps", "d:/c/targetgps.dat", "d:/c/targetrcs.rcs");
 }
 

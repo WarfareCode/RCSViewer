@@ -20,7 +20,7 @@ void LinearIntp(double *xout, double *yout, __int64 xn, double *yin, __int64 yn)
 bool gps_rcs_files_read(QString gpsfile,
 	QString targpsfile,
 	QString rcsfile,
-	QVector<dataunit> &vec_data,
+	QVector<dataunit*> &vec_data,
 	cTime& startTime)
 {
 	if (vec_data.size() > 0)
@@ -28,7 +28,6 @@ bool gps_rcs_files_read(QString gpsfile,
 		vec_data.clear();
 	}
 
-	dataunit dataunit_temp;
 	//cTime time_temp;
 	//target
 	double *tar_lati_raw = new double[MAX_RCS_POINTS];
@@ -247,6 +246,9 @@ bool gps_rcs_files_read(QString gpsfile,
 		while (azAngle[k] < 0)	{ azAngle[k] += 360; }
 		while (azAngle[k] > 360) { azAngle[k] -= 360; } // 添加2017/3/25;
 
+		dataunit* pUnit = new dataunit;
+		dataunit& dataunit_temp = *pUnit;
+
 		dataunit_temp.angle = azAngle[k];
 		dataunit_temp.RCS_dB = RCS_raw[k];
 		dataunit_temp.plane_lon = plane_logn_intp[k];
@@ -268,8 +270,7 @@ bool gps_rcs_files_read(QString gpsfile,
 // 		dataunit_temp.ctime.dSeconds = floor(tar_sec_intp[k] - 3600 * hour_temp - 60 * min_temp);
 
 		dataunit_temp.dTime = tar_sec_intp[k];
-
-		vec_data.push_back(dataunit_temp);
+		vec_data.push_back(pUnit);
 	}
 
 	delete[] tar_lati_raw; tar_lati_raw = NULL;

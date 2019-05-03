@@ -42,7 +42,7 @@ void LinearIntp(double *xout, double *yout, __int64 xn, double *yin, __int64 yn)
 bool gps_rcs_files_read(QString gpsfile,
 	QString targpsfile,
 	QString rcsfile,
-	QVector<dataunit> &vec_data, 
+	QVector<dataunit*> &vec_data, 
 	cTime& startTime);
 
 

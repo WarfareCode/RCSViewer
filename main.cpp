@@ -7,8 +7,6 @@
 #include "osg/Matrixf"
 #include "samplingthread.h"
 
-SamplingThread* g_pSampleThread = nullptr;
-
 int main(int argc, char *argv[])
 {
 	{
