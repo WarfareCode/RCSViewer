@@ -20,6 +20,7 @@
 extern osgViewer::View* g_pView;
 extern SamplingThread* g_pSampleThread;
 extern Plot* g_pPlot;
+extern VideoPlayer* g_pVideoPlayer;
 
 void SetTerrainManipulator();
 void SetNodeTrackerManipulator(int nIndex = 0);
@@ -122,6 +123,7 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 	QDockWidget* pDockWidget = new QDockWidget;
 	pDockWidget->setWindowTitle(QString::fromLocal8Bit("สำฦต"));
  	VideoPlayer* pPlayer = new VideoPlayer;
+	g_pVideoPlayer = pPlayer;
  	pDockWidget->setWidget(pPlayer);
 	
 	addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, pDockWidget);

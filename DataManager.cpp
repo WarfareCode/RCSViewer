@@ -1,4 +1,6 @@
 #include "DataManager.h"
+#include "videoplayer.h"
+
 #include <osg/Notify>
 #include <osg/MatrixTransform>
 #include <osg/PositionAttitudeTransform>
@@ -25,9 +27,12 @@
 #include <osg/PolygonOffset>
 #include <osg/Switch>
 #include "plot.h"
+#include "signaldata.h"
+
 
 SamplingThread* g_pSampleThread = nullptr;
 Plot* g_pPlot = nullptr;
+VideoPlayer* g_pVideoPlayer = nullptr;
 
 static char * vertexShader = {
 	"void main(void ){\n"
@@ -360,7 +365,7 @@ void DataManager::GetPlanePathEnv(double& dx1, double& dy1, double& dx2, double&
 	dH = m_dH;
 }
 
-bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QString rcsfile)
+bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QString rcsfile, QString video)
 {
 	cTime timeStart;
 
@@ -443,7 +448,7 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 	for (int i = 0; i < nSize; i++)
 	{
 		osg::Quat quat;
-		osg::Vec3d position(listData[i]->plane_lon, listData[i]->plane_lat, listData[i]->plane_Height * 0.00001141); // * 0.00001141转为经纬度
+		osg::Vec3d position(listData[i]->plane_lon, listData[i]->plane_lat, listData[i]->plane_Height * 0.000008983152841195214); // * 0.000008983152841195214 转为经纬度
 
 		if (i != 0 && i < nSize - 1)
 		{
@@ -468,7 +473,7 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 	for (int i = 0; i < nSize; i++)
 	{
 		osg::Quat quat;
-		osg::Vec3d position(listData[i]->target_lon, listData[i]->target_lat, listData[i]->target_Height *  0.00001141);
+		osg::Vec3d position(listData[i]->target_lon, listData[i]->target_lat, listData[i]->target_Height *  0.000008983152841195214);
 
 		if (i != 0 && i < nSize - 1)
 		{
@@ -521,7 +526,7 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 		//g_vecData = listData;
 	}
 
-	g_pPlot->replot();
+	SignalData::instance().Clear();
 
 	//加载曲线显示
 	if (g_pSampleThread)
@@ -544,7 +549,15 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 
 	g_pSampleThread->start();
 
+	g_pPlot->start();
+	g_pPlot->replot();
+
 	SetAutoManipulator(m_dLeft, m_dTop, m_dRight, m_dBottom, m_dH);
+
+	ClearPlanePathLine();
+	ResetAnimationPath();
+
+	g_pVideoPlayer->setFileAndPlay(video);
 	return true;
 }
 

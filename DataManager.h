@@ -16,7 +16,7 @@ public:
 
 	static DataManager* Instance();
 
-	bool LoadDataAndDisplay(QString gpsfile, QString targpsfile, QString rcsfile);
+	bool LoadDataAndDisplay(QString gpsfile, QString targpsfile, QString rcsfile, QString video);
 
 	void LoadAerocraft(const QString& strFile);
 

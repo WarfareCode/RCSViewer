@@ -121,6 +121,14 @@ void VideoPlayer::play()
     }
 }
 
+void VideoPlayer::setFileAndPlay(QString strFile)
+{
+	errorLabel->setText("");
+	mediaPlayer.setMedia(QUrl::fromLocalFile(strFile));
+	mediaPlayer.play();
+	playButton->setEnabled(true);
+}
+
 void VideoPlayer::mediaStateChanged(QMediaPlayer::State state)
 {
     switch(state) {

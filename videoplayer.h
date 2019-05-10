@@ -63,6 +63,8 @@ public slots:
     void openFile();
     void play();
 
+	void setFileAndPlay(QString strFile);
+
 private slots:
     void mediaStateChanged(QMediaPlayer::State state);
     void positionChanged(qint64 position);

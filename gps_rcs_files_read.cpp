@@ -103,6 +103,12 @@ bool gps_rcs_files_read(QString gpsfile,
 		list = cmd.split(QRegExp("\\s+"));
 		if (tar_gps_point >= MAX_RCS_POINTS) break;
 
+		if (list.size() < 7)
+		{
+			fin1.close();
+			return false;
+		}
+
 		tar_time.append(list.at(0)); // seconds for 0:0:00
 		tar_sec_raw[tar_gps_point] = list.at(0).toDouble();
 		tar_logn_raw[tar_gps_point] = list.at(1).toDouble();

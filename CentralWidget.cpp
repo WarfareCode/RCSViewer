@@ -11,6 +11,7 @@
 #include "DataType.h"
 #include "MainWindow3D.h"
 #include "DataManager.h"
+#include "DisplayFileSelectDlg.h"
 
 CentralWidget::CentralWidget(QWidget *parent)
 	: QWidget(parent)
@@ -95,16 +96,62 @@ void CentralWidget::slotBeforeDelete(int nRow)
 
 void CentralWidget::slot3DView()
 {
-	static MainWindow3D* pMainwindow3D = new MainWindow3D;
-	pMainwindow3D->showMaximized();
+	QSqlTableModel* pTableModel = (QSqlTableModel*)ui.tableView->model();
+	if (!pTableModel)
+		return;
 
 	QModelIndexList indexes = ui.tableView->selectionModel()->selectedIndexes();
 	if (indexes.isEmpty())
+	{
+		QMessageBox msgBox;
+		msgBox.setWindowTitle(QString::fromLocal8Bit("提示"));
+		msgBox.setText(QString::fromLocal8Bit("请选择需要展示的记录"));
+		msgBox.exec();
 		return;
-
+	}
+		
 	QModelIndex modelIndex = indexes[0];
+	int nRow = modelIndex.row();
+	int nColumn = modelIndex.column();
 
-	DataManager::Instance()->LoadDataAndDisplay("d:/c/airbornegps.gps", "d:/c/targetgps.dat", "d:/c/targetrcs.rcs");
+	//找到所有的文件字段
+	QList<int> listFileIndex;
+	QStringList listFileFieldName;
+	QStringList listFilePath;
+	QJsonArray fields = m_currentObject.value(Class_Fields).toArray();
+	int nFieldCount = fields.count();
+	for (int i = 0; i < nFieldCount; i++)
+	{
+		QJsonObject field = fields.at(i).toObject();
+		QString strFieldType = field.value(Field_DataType).toString();
+		QString strFieldName = field.value(Field_Name).toString();
+
+		if (strFieldType.compare(FieldType_File_Des) == 0)
+		{
+			//第一个是“ID”字段。加一
+			listFileIndex.push_back(i + 1);
+			listFileFieldName.push_back(strFieldName);
+		}
+	}
+
+	for (int i = 0; i < listFileIndex.size(); i++)
+	{
+		QModelIndex newIndex = pTableModel->index(nRow, listFileIndex[i]);
+		QString strContent = pTableModel->data(newIndex).toString();
+		listFilePath.push_back(strContent);
+	}
+
+	DisplayFileSelectDlg dlg(listFileFieldName, listFilePath);
+	if (dlg.exec())
+	{
+		static MainWindow3D* pMainwindow3D = new MainWindow3D;
+		pMainwindow3D->showMaximized();
+
+		QString strPlaneGPS, strTargetGPS, strRCS, strVideo;
+		dlg.getFilePath(strPlaneGPS, strTargetGPS, strRCS, strVideo);
+		//DataManager::Instance()->LoadDataAndDisplay("d:/c/airbornegps.gps", "d:/c/targetgps.dat", "d:/c/targetrcs.rcs");
+		DataManager::Instance()->LoadDataAndDisplay(strPlaneGPS, strTargetGPS, strRCS, strVideo);
+	}
 }
 
 void CentralWidget::slotDelete()
@@ -157,7 +204,8 @@ void CentralWidget::showDBTable(const QString& strCurrentDir, const QJsonObject&
 	pTableModel->select(); //选取整个表的所有行
 	// pTableModel->removeColumn(1); //不显示第二列,如果这时添加记录，则该属性的值添加不上
 
-	ui.tableView->repaint();
+	//ui.tableView->repaint();
+	ui.tableView->update();
 	//View->setEditTriggers(QAbstractItemView::NoEditTriggers); 使其不可编辑
 }
 

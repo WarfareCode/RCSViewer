@@ -109,3 +109,6 @@ point_out.sbn
 point_out.sbx
 point_out.shp
 point_out.shx
+GeneratedFiles/Debug/moc_DisplayFileSelectDlg.cpp
+GeneratedFiles/Release/moc_DisplayFileSelectDlg.cpp
+GeneratedFiles/ui_DisplayFileSelectDlg.h
