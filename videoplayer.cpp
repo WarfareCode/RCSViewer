@@ -80,8 +80,8 @@ VideoPlayer::VideoPlayer(QWidget *parent)
 
     QBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(videoWidget);
-    layout->addLayout(controlLayout);
-    layout->addWidget(errorLabel);
+    //layout->addLayout(controlLayout);
+    //layout->addWidget(errorLabel);
 
     setLayout(layout);
 

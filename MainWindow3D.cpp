@@ -123,6 +123,7 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 	QDockWidget* pDockWidget = new QDockWidget;
 	pDockWidget->setWindowTitle(QString::fromLocal8Bit("สำฦต"));
  	VideoPlayer* pPlayer = new VideoPlayer;
+	pPlayer->setMinimumHeight(300);
 	g_pVideoPlayer = pPlayer;
  	pDockWidget->setWidget(pPlayer);
 	
