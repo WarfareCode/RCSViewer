@@ -227,7 +227,7 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 
 	DataManager* pManager = DataManager::Instance();
 	pManager->LoadTerrain();
-	pManager->LoadTargetObject("c:/102202.FBX"/*"c:/a/boat.FBX"*/);
+	pManager->LoadTargetObject("c:/a/102202.FBX"/*"c:/a/boat.FBX"*/);
 	pManager->LoadAerocraft("c:/a/plane.FBX");
 
 	//添加多光源

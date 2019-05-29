@@ -77,7 +77,13 @@ public:
 	//充值动画位置
 	void ResetAnimationPath();
 
+	//设置录屏文件的保存路径。
+	void SetScreenCaptureFilePath(QString& strPath){ m_strScreenCaptureFilePath = strPath; }
+	QString GetScreenCaptureFilePath(){ return m_strScreenCaptureFilePath; }
+
 protected:
+
+	QString m_strScreenCaptureFilePath;
 
 	osg::Group* m_pRoot;
 

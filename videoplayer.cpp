@@ -43,6 +43,7 @@
 #include <QtWidgets>
 #include <QtMultimediaWidgets/QVideoWidget>
 #include <QtMultimedia/QVideoSurfaceFormat>
+#include <QtMultimedia/QMediaPlaylist>
 
 VideoPlayer::VideoPlayer(QWidget *parent)
     : QWidget(parent)
@@ -124,7 +125,13 @@ void VideoPlayer::play()
 void VideoPlayer::setFileAndPlay(QString strFile)
 {
 	errorLabel->setText("");
-	mediaPlayer.setMedia(QUrl::fromLocalFile(strFile));
+
+	QMediaPlaylist* playlist = new QMediaPlaylist;
+	playlist->addMedia(QUrl::fromLocalFile(strFile));
+	playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
+	//mediaPlayer.setMedia(QUrl::fromLocalFile(strFile));
+
+	mediaPlayer.setPlaylist(playlist);
 	mediaPlayer.play();
 	playButton->setEnabled(true);
 }

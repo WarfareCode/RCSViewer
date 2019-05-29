@@ -3,6 +3,7 @@
 
 #include <QtWidgets/QMainWindow>
 #include "plot.h"
+#include <QtCore/QProcess>
 
 class MainWindow3D : public QMainWindow
 {
@@ -40,9 +41,17 @@ public slots:
 
 	void slotTest();
 
+	void slotSetPara();
+
+	void slotCapture();
+
+	void slotCaptureFinished(int exitCode, QProcess::ExitStatus exitStatus);
+
 private:
 
 	Plot* m_pPlot;
+
+	QProcess* m_pProcess;
 
 // private:
 // 	Ui::MainWindowClass ui;

@@ -112,3 +112,6 @@ point_out.shx
 GeneratedFiles/Debug/moc_DisplayFileSelectDlg.cpp
 GeneratedFiles/Release/moc_DisplayFileSelectDlg.cpp
 GeneratedFiles/ui_DisplayFileSelectDlg.h
+GeneratedFiles/Debug/moc_SetPathDlg.cpp
+GeneratedFiles/Release/moc_SetPathDlg.cpp
+GeneratedFiles/ui_SetPathDlg.h

@@ -16,6 +16,8 @@
 #include <QtWidgets/QMenuBar>
 #include "samplingthread.h"
 #include "signaldata.h"
+#include "SetPathDlg.h"
+#include <QtWidgets/QMessageBox>
 
 extern osgViewer::View* g_pView;
 extern SamplingThread* g_pSampleThread;
@@ -39,6 +41,8 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 	: QMainWindow(parent)
 {
 	setWindowTitle(QString::fromLocal8Bit("模拟"));
+
+	m_pProcess = nullptr;
 
 	QMenu* pMenuFile = menuBar()->addMenu(QString::fromLocal8Bit("文件"));
 	QAction* pActionLoadAeroplane = pMenuFile->addAction(QString::fromLocal8Bit("加载飞行器"));
@@ -108,6 +112,15 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 	QAction* pActionTest = pMenuTest->addAction(QString::fromLocal8Bit("重置"));
 	connect(pActionTest, SIGNAL(triggered()), this, SLOT(slotTest()));
 
+	QMenu* pMenuPara = menuBar()->addMenu(QString::fromLocal8Bit("参数"));
+	QAction* pActionPara = pMenuPara->addAction(QString::fromLocal8Bit("录屏路径"));
+	connect(pActionPara, SIGNAL(triggered()), this, SLOT(slotSetPara()));
+
+	QAction* pActionCapture = menuBar()->addAction(QString::fromLocal8Bit("录制"));
+	pActionCapture->setCheckable(true);
+	pActionCapture->setChecked(false);
+	connect(pActionCapture, SIGNAL(triggered()), this, SLOT(slotCapture()));
+
 #if QT_VERSION >= 0x050000
 	// Qt5 is currently crashing and reporting "Cannot make QOpenGLContext current in a different thread" when the viewer is run multi-threaded, this is regression from Qt4
 	osgViewer::ViewerBase::ThreadingModel threadingModel = osgViewer::ViewerBase::SingleThreaded;
@@ -147,6 +160,139 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 MainWindow3D::~MainWindow3D()
 {
 
+}
+
+void MainWindow3D::slotSetPara()
+{
+	DataManager* pDataManager = DataManager::Instance();
+	SetPathDlg dlg(pDataManager->GetScreenCaptureFilePath());
+
+	if (dlg.exec())
+	{
+		pDataManager->SetScreenCaptureFilePath(dlg.path());
+	}
+}
+
+void MainWindow3D::slotCaptureFinished(int exitCode, QProcess::ExitStatus exitStatus)
+{
+
+}
+
+void MainWindow3D::slotCapture()
+{
+	QString strCapturepath = DataManager::Instance()->GetScreenCaptureFilePath();
+	if (strCapturepath.isEmpty())
+	{
+// 		int ret = QMessageBox::warning(this, QString::fromLocal8Bit("提示"),
+// 			QString::fromLocal8Bit("请设置保存路径"),
+// 			QMessageBox::Ok);
+// 		return;
+
+		DataManager* pDataManager = DataManager::Instance();
+		SetPathDlg dlg(pDataManager->GetScreenCaptureFilePath());
+
+		if (dlg.exec())
+		{
+			pDataManager->SetScreenCaptureFilePath(dlg.path());
+			strCapturepath = DataManager::Instance()->GetScreenCaptureFilePath();
+		}
+		else
+		{
+			return;
+		}
+	}
+
+	QFileInfo fileInfo(strCapturepath);
+	if (fileInfo.isFile())
+		QFile::remove(strCapturepath);
+
+	QAction* pAction = qobject_cast<QAction*>(sender());
+	static bool s_bRecording = false;
+
+	if (!s_bRecording)
+	{
+		int ret = QMessageBox::warning(this, QString::fromLocal8Bit("提示"),
+			QString::fromLocal8Bit("是否开始录制？"),
+			QMessageBox::Yes | QMessageBox::No);
+
+		if (ret == QMessageBox::No)
+		{
+			return;
+		}
+	}
+
+	s_bRecording = !s_bRecording;
+
+	if (s_bRecording)
+	{
+		pAction->setText(QString::fromLocal8Bit("停止"));
+
+		if (m_pProcess)
+		{
+			m_pProcess->kill();
+			delete m_pProcess;
+			m_pProcess = nullptr;
+		}
+
+		QString binPath = QCoreApplication::applicationFilePath();
+		QFileInfo info(binPath);
+		binPath = info.path();
+		binPath += "/ffmpeg.exe";
+
+		m_pProcess = new QProcess(this);
+		connect(m_pProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(slotCaptureFinished(int, QProcess::ExitStatus)));
+
+		//获取窗口要录屏的范围
+		QRect rectMenuBar = menuBar()->geometry();
+		QWidget* pW = qobject_cast<QWidget*>(menuBar()->parent());
+		QPoint ptLT(rectMenuBar.left(), rectMenuBar.bottom());
+		ptLT = pW->mapToGlobal(ptLT);
+
+		QRect rectMainWindow = geometry();
+		QPoint ptRB(rectMainWindow.right(), rectMainWindow.bottom());
+
+		int nWid = ptRB.x() - ptLT.x();
+		int nHei = ptRB.y() - ptLT.y();
+
+		QStringList strList;
+		strList << "-f";
+		strList << "gdigrab";
+		strList << "-framerate";
+		strList << "30";
+		strList << "-offset_x";
+		strList << QString::number(ptLT.x());
+		strList << "-offset_y";
+		strList << QString::number(ptLT.y());
+		strList << "-video_size";
+		strList << QString::number(nWid) + 'x' + QString::number(nHei);
+// 		strList << "-show_region";
+// 		strList << "1";
+		strList << "-i";
+		strList << "desktop";
+		strList << strCapturepath/*"output11.mkv"*/;
+
+		//ffmpeg -f gdigrab -framerate 30 -offset_x 10 -offset_y 20 -video_size 640x480 -show_region 1 -i desktop output.mkv
+
+		m_pProcess->start(binPath, strList);
+		if (!m_pProcess->waitForStarted())
+		{
+			delete m_pProcess;
+			m_pProcess = nullptr;
+			return;
+		}
+	}
+	else
+	{
+		pAction->setText(QString::fromLocal8Bit("录制"));
+
+		if (m_pProcess)
+		{
+			m_pProcess->write("q");
+			m_pProcess->waitForFinished();
+			delete m_pProcess;
+			m_pProcess = nullptr;
+		}
+	}
 }
 
 void MainWindow3D::slotSetManipulatorAeroplane()
