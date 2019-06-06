@@ -557,7 +557,9 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 	ClearPlanePathLine();
 	ResetAnimationPath();
 
-	g_pVideoPlayer->setFileAndPlay(video);
+	if (g_pVideoPlayer)
+		g_pVideoPlayer->setFileAndPlay(video);
+
 	return true;
 }
 
@@ -571,6 +573,19 @@ DataManager* DataManager::Instance()
 	return g_DataManager;
 }
 
+std::string Path(QString str)
+{
+	QString strDir = QCoreApplication::applicationDirPath();
+	strDir += "/../data/" + str;
+
+	static std::string s_str;
+
+	QByteArray byteArray = strDir.toLocal8Bit();
+	s_str = byteArray.data();
+
+	return s_str;
+}
+
 void DataManager::LoadTerrain()
 {
 	if (m_pTerrainNode == nullptr)
@@ -579,7 +594,8 @@ void DataManager::LoadTerrain()
 		m_pTerrainNode = pTerrainGroup;
 		m_pRoot->addChild(m_pTerrainNode);
 
-		osg::Node* pNodeChina = osgDB::readNodeFile("d:/ive_google/china/china.ive");
+		//osg::Node* pNodeChina = osgDB::readNodeFile("d:/ive_google/china/china.ive");
+		osg::Node* pNodeChina = osgDB::readNodeFile(Path("china/china.ive"));
 
 		{
 			osg::StateSet * pStateSet = pNodeChina->getOrCreateStateSet();
@@ -587,7 +603,7 @@ void DataManager::LoadTerrain()
 		}
 
 		osg::MatrixTransform* pChinaTransform = new osg::MatrixTransform;
-		pChinaTransform->setMatrix(osg::Matrix::translate(osg::Vec3d(0.0, 0.0, -0.001)));
+		pChinaTransform->setMatrix(osg::Matrix::translate(osg::Vec3d(0.0, 0.0, -0.0025)));
 		pChinaTransform->addChild(pNodeChina);
 		pTerrainGroup->addChild(pChinaTransform);
 
@@ -603,8 +619,8 @@ void DataManager::LoadTerrain()
 		}
 
 		osg::Node* pNode = nullptr;
-		//pNode = osgDB::readNodeFile("D:/rcsmodel/sanya_clip.ive");
-		pNode = osgDB::readNodeFile("D:/ive_google/sanya16.ive");
+		//pNode = osgDB::readNodeFile("D:/ive_google/sanya16.ive");
+		pNode = osgDB::readNodeFile(Path("sanya16.ive"));
 		osg::StateSet * ss = pNode/*pTerrainGroup*/->getOrCreateStateSet();
 		pTerrainGroup->addChild(pNode);		AddOcean(110.112462424978, 18.0959936703065, pTerrainGroup);
 		if (1)
@@ -623,31 +639,33 @@ void DataManager::LoadTerrain()
 
 		//pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/west.ive"));
 		//pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/east_little.ive"));
-		//pNode = osgDB::readNodeFile("D:/rcsmodel/huludao_clip.ive");
-		pNode = osgDB::readNodeFile("D:/ive_google/huludao16.ive");
+		
+		//pNode = osgDB::readNodeFile("D:/ive_google/huludao16.ive");
+		pNode = osgDB::readNodeFile(Path("huludao16.ive"));
 		pNode->setStateSet(ss);
 		pTerrainGroup->addChild(pNode);
 		AddOcean(121.061215478138, 40.6654974465535, pTerrainGroup);
 
-		//pNode = osgDB::readNodeFile("D:/rcsmodel/zhoushan_clip.ive");
-		pNode = osgDB::readNodeFile("D:/ive_google/zhoushan16.ive");
+		//pNode = osgDB::readNodeFile("D:/ive_google/zhoushan16.ive");
+		pNode = osgDB::readNodeFile(Path("zhoushan16.ive"));
 		pNode->setStateSet(ss);
 		pTerrainGroup->addChild(pNode);
 		AddOcean(122.730963656668, 29.829958362075, pTerrainGroup);
 
-		//pNode = osgDB::readNodeFile("D:/rcsmodel/qinhuangdao_clip.ive");
-		pNode = osgDB::readNodeFile("D:/ive_google/qinhuangdao16.ive");
+		//pNode = osgDB::readNodeFile("D:/ive_google/qinhuangdao16.ive");
+		pNode = osgDB::readNodeFile(Path("qinhuangdao16.ive"));
 		pNode->setStateSet(ss);
 		pTerrainGroup->addChild(pNode);
 		AddOcean(119.6827079830245, 39.8695409097925, pTerrainGroup);
 
-		//pNode = osgDB::readNodeFile("D:/rcsmodel/dalianchanghai_clip.ive");
-		pNode = osgDB::readNodeFile("D:/ive_google/dalianchanghai16.ive");
+		//pNode = osgDB::readNodeFile("D:/ive_google/dalianchanghai16.ive");
+		pNode = osgDB::readNodeFile(Path("dalianchanghai16.ive"));
 		pNode->setStateSet(ss);
 		pTerrainGroup->addChild(pNode);
 		AddOcean(122.8398126232475, 38.837338818795, pTerrainGroup);
 
-		pNode = osgDB::readNodeFile("D:/rcsmodel/dunhuang.ive");
+		//pNode = osgDB::readNodeFile("D:/rcsmodel/dunhuang.ive");
+		pNode = osgDB::readNodeFile(Path("dunhuang.ive"));
 		osg::StateSet* stateset = pNode->getOrCreateStateSet();
 		//osg::Depth* depth = new osg::Depth;
 		//depth->setFunction(osg::Depth::ALWAYS);
@@ -661,40 +679,48 @@ void DataManager::LoadTerrain()
 		// 		stateset->setRenderBinDetails(11, "RenderBin");
 		pTerrainGroup->addChild(pNode);
 
-
-		pNode = osgDB::readNodeFile("D:/rcsmodel/dunhuang(mubiaoqu).ive");
+		//pNode = osgDB::readNodeFile("D:/rcsmodel/dunhuang(mubiaoqu).ive");
+		pNode = osgDB::readNodeFile(Path("dunhuang(mubiaoqu).ive"));
 		pNode->setStateSet(stateset);
 		pTerrainGroup->addChild(pNode);
 
-		pNode = osgDB::readNodeFile("D:/rcsmodel/dunhuang3.ive");
+		//pNode = osgDB::readNodeFile("D:/rcsmodel/dunhuang3.ive");
+		pNode = osgDB::readNodeFile(Path("dunhuang3.ive"));
 		pNode->setStateSet(stateset);
 		pTerrainGroup->addChild(pNode);
 
-		pNode = osgDB::readNodeFile("D:/rcsmodel/hami(jichangqu).ive");
+		//pNode = osgDB::readNodeFile("D:/rcsmodel/hami(jichangqu).ive");
+		pNode = osgDB::readNodeFile(Path("hami(jichangqu).ive"));
 		pNode->setStateSet(stateset);
 		pTerrainGroup->addChild(pNode);
 
-		pNode = osgDB::readNodeFile("D:/rcsmodel/hami(mubiaoqu).ive");
+		//pNode = osgDB::readNodeFile("D:/rcsmodel/hami(mubiaoqu).ive");
+		pNode = osgDB::readNodeFile(Path("hami(mubiaoqu).ive"));
 		pNode->setStateSet(stateset);
 		pTerrainGroup->addChild(pNode);
 
-		pNode = osgDB::readNodeFile("D:/rcsmodel/jinzhou.ive");
+		//pNode = osgDB::readNodeFile("D:/rcsmodel/jinzhou.ive");
+		pNode = osgDB::readNodeFile(Path("jinzhou.ive"));
 		pNode->setStateSet(stateset);
 		pTerrainGroup->addChild(pNode);
 
-		pNode = osgDB::readNodeFile("D:/rcsmodel_new/kuerle.ive");
+		//pNode = osgDB::readNodeFile("D:/rcsmodel_new/kuerle.ive");
+		pNode = osgDB::readNodeFile(Path("kuerle.ive"));
 		pNode->setStateSet(stateset);
 		pTerrainGroup->addChild(pNode);
 
-		pNode = osgDB::readNodeFile("D:/rcsmodel/liaoningchaoyang.ive");
+		//pNode = osgDB::readNodeFile("D:/rcsmodel/liaoningchaoyang.ive");
+		pNode = osgDB::readNodeFile(Path("liaoningchaoyang.ive"));
 		pNode->setStateSet(stateset);
 		pTerrainGroup->addChild(pNode);
 
-		pNode = osgDB::readNodeFile("D:/rcsmodel/qiemo.ive");
+		//pNode = osgDB::readNodeFile("D:/rcsmodel/qiemo.ive");
+		pNode = osgDB::readNodeFile(Path("qiemo.ive"));
 		pNode->setStateSet(stateset);
 		pTerrainGroup->addChild(pNode);
 
-		pNode = osgDB::readNodeFile("D:/rcsmodel/xilinhaote.ive");
+		//pNode = osgDB::readNodeFile("D:/rcsmodel/xilinhaote.ive");
+		pNode = osgDB::readNodeFile(Path("xilinhaote.ive"));
 		pNode->setStateSet(stateset);
 		pTerrainGroup->addChild(pNode);
 	}

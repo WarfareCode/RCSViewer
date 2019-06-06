@@ -43,6 +43,8 @@ public slots:
 
 	void slotSetPara();
 
+	void slotSetPlotRange();
+
 	void slotCapture();
 
 	void slotCaptureFinished(int exitCode, QProcess::ExitStatus exitStatus);

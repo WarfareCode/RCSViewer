@@ -95,7 +95,7 @@ d_timerId(-1)
 	setAxisTitle(QwtPlot::yLeft, QString::fromLocal8Bit("db"));
 
 	setAxisScale(QwtPlot::xBottom, d_interval.minValue(), d_interval.maxValue());
-	setAxisScale(QwtPlot::yLeft, 0, 60);
+	setAxisScale(QwtPlot::yLeft, 20, 60);
 
 	QwtPlotGrid *grid = new QwtPlotGrid();
 	grid->setPen(Qt::gray, 0.0, Qt::DotLine);

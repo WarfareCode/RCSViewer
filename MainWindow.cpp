@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	m_defaultFont = 8;
 
-	setWindowTitle(QString::fromLocal8Bit("文件管理"));
+	setWindowTitle(QString::fromLocal8Bit("RCS数据管理软件"));
 	m_pFileTreeView = new FileTreeView(0);
 	
 	QDockWidget* pDockWidget = new QDockWidget(this);
@@ -111,6 +111,9 @@ void MainWindow::deleteRecentProject(const QString& strProjectPath)
 			connect(pAction, SIGNAL(triggered()), this, SLOT(slotRencentProject()));
 		}
 	}
+
+	//立即保存。方式软件崩溃后无法保存
+	saveRencentProjectConfig();
 }
 
 void MainWindow::slotOpenProject()

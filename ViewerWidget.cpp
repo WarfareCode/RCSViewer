@@ -227,8 +227,14 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 
 	DataManager* pManager = DataManager::Instance();
 	pManager->LoadTerrain();
-	pManager->LoadTargetObject("c:/a/102202.FBX"/*"c:/a/boat.FBX"*/);
-	pManager->LoadAerocraft("c:/a/plane.FBX");
+// 	pManager->LoadTargetObject("c:/a/102202.FBX");
+// 	pManager->LoadAerocraft("c:/a/plane.FBX");
+
+	QString strDir = QCoreApplication::applicationDirPath();
+	strDir += "/../data/";
+
+	pManager->LoadTargetObject(strDir + "102202.FBX");
+	pManager->LoadAerocraft(strDir + "plane.FBX");
 
 	//添加多光源
 	if (0)

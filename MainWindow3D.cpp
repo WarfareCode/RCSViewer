@@ -18,6 +18,7 @@
 #include "signaldata.h"
 #include "SetPathDlg.h"
 #include <QtWidgets/QMessageBox>
+#include "PlotRangeDlg.h"
 
 extern osgViewer::View* g_pView;
 extern SamplingThread* g_pSampleThread;
@@ -116,6 +117,9 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 	QAction* pActionPara = pMenuPara->addAction(QString::fromLocal8Bit("Â¼ÆÁÂ·¾¶"));
 	connect(pActionPara, SIGNAL(triggered()), this, SLOT(slotSetPara()));
 
+	QAction* pActionPlotRange = pMenuPara->addAction(QString::fromLocal8Bit("Í¼±í·¶Î§"));
+	connect(pActionPlotRange, SIGNAL(triggered()), this, SLOT(slotSetPlotRange()));
+
 	QAction* pActionCapture = menuBar()->addAction(QString::fromLocal8Bit("Â¼ÖÆ"));
 	pActionCapture->setCheckable(true);
 	pActionCapture->setChecked(false);
@@ -170,6 +174,19 @@ void MainWindow3D::slotSetPara()
 	if (dlg.exec())
 	{
 		pDataManager->SetScreenCaptureFilePath(dlg.path());
+	}
+}
+
+void MainWindow3D::slotSetPlotRange()
+{
+	PlotRangeDlg dlg;
+	if (dlg.exec())
+	{
+		int nMin = dlg.GetMin();
+		int nMax = dlg.GetMax();
+
+		m_pPlot->setAxisScale(QwtPlot::yLeft, nMin, nMax);
+		m_pPlot->replot();
 	}
 }
 
