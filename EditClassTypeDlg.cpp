@@ -12,7 +12,7 @@ EditClassTypeDlg::EditClassTypeDlg(const QJsonObject& obj, bool bEdit, QWidget *
 {
 	ui.setupUi(this);
 
-	setWindowTitle(QString::fromLocal8Bit("修改类型"));
+	setWindowTitle(QString::fromLocal8Bit("添加字段"));
 	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	setWindowIcon(QIcon());
 	
@@ -44,7 +44,7 @@ EditClassTypeDlg::EditClassTypeDlg(const QJsonObject& obj, bool bEdit, QWidget *
 		QString strFieldType = objRecord.value(Field_DataType).toString();
 
 		QTableWidgetItem* pItem1 = new QTableWidgetItem(strFieldName);
-		//pItem1->setFlags(pItem1->flags() & (~Qt::ItemIsEditable));
+		pItem1->setFlags(pItem1->flags() & (~Qt::ItemIsEditable));
 
 // 		QTableWidgetItem* pItem2 = new QTableWidgetItem(strFieldType);
 // 		pItem2->setFlags(pItem2->flags() & (~Qt::ItemIsEditable));

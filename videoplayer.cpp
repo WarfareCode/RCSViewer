@@ -124,6 +124,12 @@ void VideoPlayer::play()
 
 void VideoPlayer::setFileAndPlay(QString strFile)
 {
+	if (strFile.isEmpty())
+	{
+		mediaPlayer.stop();
+		return;
+	}
+
 	errorLabel->setText("");
 
 	QMediaPlaylist* playlist = new QMediaPlaylist;

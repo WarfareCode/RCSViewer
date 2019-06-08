@@ -8,6 +8,8 @@ DisplayFileSelectDlg::DisplayFileSelectDlg(const QStringList& listFileTypeName, 
 	m_listFileTypeName = listFileTypeName;
 	m_listFilePath = listFilePath;
 
+	ui.comboBox_Video->addItem(QString::fromLocal8Bit("无"));
+
 	int nCount = m_listFilePath.size();
 	for (int i = 0; i < nCount; i++)
 	{
@@ -28,9 +30,7 @@ DisplayFileSelectDlg::DisplayFileSelectDlg(const QStringList& listFileTypeName, 
 		nCurrentIndex = nCount - 1;
 	ui.comboBox_RCS->setCurrentIndex(nCurrentIndex++);
 
-	if (nCurrentIndex >= nCount)
-		nCurrentIndex = nCount - 1;
-	ui.comboBox_Video->setCurrentIndex(nCurrentIndex++);
+	ui.comboBox_Video->setCurrentIndex(0);
 }
 
 DisplayFileSelectDlg::~DisplayFileSelectDlg()
@@ -45,9 +45,18 @@ void DisplayFileSelectDlg::getFilePath(QString& strPathPlaneGPS, QString& strPat
 	int nIndexRCS = ui.comboBox_RCS->currentIndex();
 	int nIndexVideo = ui.comboBox_Video->currentIndex();
 
+	if (nIndexVideo == 0)
+	{
+		strPathVideo = ""; //视频文件第一项是空
+	}
+	else
+	{
+		nIndexVideo--;
+		strPathVideo = m_listFilePath[nIndexVideo];
+	}
+
 	strPathPlaneGPS = m_listFilePath[nIndexPlaneGPS];
 	strPathTargetGPS = m_listFilePath[nIndexTargetGPS];
 	strPathRCS = m_listFilePath[nIndexRCS];
-	strPathVideo = m_listFilePath[nIndexVideo];
 }
 

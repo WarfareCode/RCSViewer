@@ -15,7 +15,6 @@ PlotRangeDlg::PlotRangeDlg(QWidget *parent)
 	QIntValidator* pValidator2 = new QIntValidator;
 	pValidator2->setRange(0, 100);
 	ui.lineEdit_2->setValidator(pValidator2);
-
 }
 
 PlotRangeDlg::~PlotRangeDlg()

@@ -117,3 +117,4 @@ GeneratedFiles/Release/moc_SetPathDlg.cpp
 GeneratedFiles/ui_SetPathDlg.h
 GeneratedFiles/Release/moc_PlotRangeDlg.cpp
 GeneratedFiles/ui_PlotRangeDlg.h
+GeneratedFiles/Debug/moc_PlotRangeDlg.cpp

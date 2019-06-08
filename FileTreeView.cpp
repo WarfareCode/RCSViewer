@@ -111,7 +111,7 @@ FileTreeView::FileTreeView(QWidget *parent)
 	QAction* pActionAddRecords = m_pMenuOnClass->addAction(QString::fromLocal8Bit("批量添加记录"));
 	QAction* pActionAddRecord = m_pMenuOnClass->addAction(QString::fromLocal8Bit("添加记录"));
 	QAction* pActionSearch = m_pMenuOnClass->addAction(QString::fromLocal8Bit("查询"));
-	QAction* pActionEditClass = m_pMenuOnClass->addAction(QString::fromLocal8Bit("编辑"));
+	QAction* pActionEditClass = m_pMenuOnClass->addAction(QString::fromLocal8Bit("添加字段"));
 	QAction* pActionDeleteClass = m_pMenuOnClass->addAction(QString::fromLocal8Bit("删除类型"));
 
 	connect(pActionAddRecord, SIGNAL(triggered()), this, SLOT(slotAddRecord()));
