@@ -326,6 +326,9 @@
     <ClCompile Include="GeneratedFiles\Release\moc_PlotRangeDlg.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="OrientationCallback.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.ui">
@@ -590,6 +593,9 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_PlotRangeDlg.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OrientationCallback.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

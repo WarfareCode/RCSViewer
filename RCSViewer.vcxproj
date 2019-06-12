@@ -271,6 +271,7 @@
     <ClCompile Include="NewProjectDlg.cpp" />
     <ClCompile Include="OBEnumInputDlg.cpp" />
     <ClCompile Include="OpenProjectDlg.cpp" />
+    <ClCompile Include="OrientationCallback.cpp" />
     <ClCompile Include="PathSettingsDlg.cpp" />
     <ClCompile Include="PlaneLOD.cpp" />
     <ClCompile Include="plot.cpp" />
@@ -515,6 +516,7 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQWT_DLL -D_MBCS  "-ID:\OpenSceneGraph3.4.0\OpenSceneGraph-3.4.0\include" "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-ID:\OpenSceneGraph3.4.0\osgocean\include" "-I$(QTDIR)\include\QtSql" "-ID:\OpenSceneGraph3.4.0\QtitanRibbon\include" "-ID:\OpenSceneGraph3.4.0\qwt\src" "-ID:\MyProject\gdal2.2\220\bld\include"</Command>
     </CustomBuild>
+    <ClInclude Include="OrientationCallback.h" />
     <ClInclude Include="PlaneLOD.h" />
     <CustomBuild Include="PlotRangeDlg.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>

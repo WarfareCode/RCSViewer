@@ -4,6 +4,22 @@
 #include <osg/Node>
 #include <osg/MatrixTransform>
 
+static char * vertexShader = {
+	"void main(void ){\n"
+	"gl_TexCoord[0] = gl_MultiTexCoord0;\n"
+	"gl_Position = gl_ModelViewProjectionMatrix*gl_Vertex;\n"
+	"}\n"
+};
+static char * fragShader = {
+	"uniform sampler2D sampler0;\n"
+	"void main(void){\n"
+	"gl_FragColor = texture2D(sampler0, gl_TexCoord[0].st);\n"
+	"if(gl_FragColor.r == 0.0)\n"
+	"gl_FragColor.a = 0.0;\n"
+
+	"}\n"
+};
+
 class DataManager
 {
 public:
@@ -40,6 +56,8 @@ public:
 		, double& dRotateY, double& dRotateZ, double& dScale);
 
 	osg::Node* GetAerocraftNode();
+
+	osg::PositionAttitudeTransform* GetPlaneParentNode();
 
 	osg::Node* GetTargetObjectNode();
 

@@ -76,10 +76,10 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 	connect(pActionTerrain, SIGNAL(triggered()), this, SLOT(slotSetManipulatorTerrain()));
 	connect(pActionAuto, SIGNAL(triggered()), this, SLOT(slotSetManipulatorAuto()));
 
-	//QMenu* pMenuSettings = menuBar()->addMenu(QString::fromLocal8Bit("飞行器姿态"));
-	//QAction* pActionAeroplanePos = pMenuSettings->addAction(QString::fromLocal8Bit("参数设置"));
+	QMenu* pMenuSettings = menuBar()->addMenu(QString::fromLocal8Bit("飞行器姿态"));
+	QAction* pActionAeroplanePos = pMenuSettings->addAction(QString::fromLocal8Bit("参数设置"));
 
-	//connect(pActionAeroplanePos, SIGNAL(triggered()), this, SLOT(slotSetAeroplaneMatrix()));
+	connect(pActionAeroplanePos, SIGNAL(triggered()), this, SLOT(slotSetAeroplaneMatrix()));
 
 	//QMenu* pMenuAeroplanePath = menuBar()->addMenu(QString::fromLocal8Bit("飞行轨迹"));
 	//QAction* pCirclePath = pMenuAeroplanePath->addAction(QString::fromLocal8Bit("环形"));
@@ -99,10 +99,10 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 	//connect(pLinePath, SIGNAL(triggered()), this, SLOT(slotLinePath()));
 	//connect(pActionPathPara, SIGNAL(triggered()), this, SLOT(slotPathPara()));
 
-	//QMenu* pMenuTargetSettings = menuBar()->addMenu(QString::fromLocal8Bit("目标参数"));
-	//QAction* pActionTargetSettings = pMenuTargetSettings->addAction(QString::fromLocal8Bit("设置"));
+	QMenu* pMenuTargetSettings = menuBar()->addMenu(QString::fromLocal8Bit("目标参数"));
+	QAction* pActionTargetSettings = pMenuTargetSettings->addAction(QString::fromLocal8Bit("设置"));
 
-	//connect(pActionTargetSettings, SIGNAL(triggered()), this, SLOT(slotTargetPara()));
+	connect(pActionTargetSettings, SIGNAL(triggered()), this, SLOT(slotTargetPara()));
 
 	//QMenu* pMenuRadarBeamSettings = menuBar()->addMenu(QString::fromLocal8Bit("波束方向"));
 	//QAction* pActionRadarBeamSettings = pMenuRadarBeamSettings->addAction(QString::fromLocal8Bit("设置"));
