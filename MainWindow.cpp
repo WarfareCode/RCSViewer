@@ -25,7 +25,6 @@
 #include "QtnRibbonDef.h"
 #include "QtnRibbonQuickAccessBar.h"
 
-
 #define Font_Default        "System Default"
 #define Font_Normal         "Normal"
 #define Font_Large          "Large"
