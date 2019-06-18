@@ -3,6 +3,13 @@
 
 #include <qrect.h>
 
+typedef struct
+{
+	double dTime;
+	double angle;
+	double RCS_dB;
+}RCSRecord;
+
 class SignalData
 {
 public:

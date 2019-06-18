@@ -7,6 +7,7 @@
 #include <QtCore/QMap>
 #include <QMutexLocker>
 #include "gps_rcs_files_read.h"
+#include "plot.h"
 
 #if QT_VERSION < 0x040600
 #define qFastSin(x) ::sin(x)
@@ -14,7 +15,9 @@
 
 //extern QVector<dataunit>  g_vecData;
 extern QMutex g_MutexData;
-extern QMap<double, dataunit*> g_mapData;
+extern QVector<RCSRecord> g_vecRCSRecord;
+
+extern Plot* g_pPlot;
 
 SamplingThread::SamplingThread( QObject *parent ):
     QwtSamplingThread( parent ),
@@ -51,20 +54,53 @@ void SamplingThread::sample( double elapsed )
 		QMutexLocker locker(&g_MutexData);
        // const QPointF s( elapsed, value( elapsed ) );
 
-		if (g_mapData.isEmpty())
+		if (g_vecRCSRecord.isEmpty())
 			return;
 
-		double dTimeTotal = g_mapData.last()->dTime;
+		double dTimeTotal = g_vecRCSRecord.last().dTime;
 		double dTemp = elapsed / dTimeTotal;
 		dTemp = dTemp - (int)dTemp;
 		double dTime = dTemp* dTimeTotal;
 
-		QMap<double, dataunit*>::Iterator itr = g_mapData.lowerBound(dTime);
-		if (itr == g_mapData.end())
-			return;
+		static int s_nIndex = 0;
 
-		QPointF s(itr.value()->angle, itr.value()->RCS_dB);
-        SignalData::instance().append( s );
+		int nIndex = 0;
+		for (int i = 0; i < g_vecRCSRecord.size(); i ++)
+		{
+			RCSRecord& record = g_vecRCSRecord[i];
+			if (record.dTime > dTime)
+			{
+				nIndex = i;
+				break;
+			}
+		}
+
+		if (nIndex >= s_nIndex)
+		{
+			for (int i = s_nIndex; i < nIndex; i ++)
+			{
+				RCSRecord& record = g_vecRCSRecord[i];
+
+				QPointF s(record.angle, record.RCS_dB);
+				SignalData::instance().append(s);
+			}
+		}
+		else
+		{
+			SignalData::instance().Clear();
+
+			for (int i = 0; i < nIndex; i ++)
+			{
+				RCSRecord& record = g_vecRCSRecord[i];
+
+				QPointF s(record.angle, record.RCS_dB);
+				SignalData::instance().append(s);
+			}
+
+			g_pPlot->replot();
+		}
+
+		s_nIndex = nIndex;
     }
 }
 

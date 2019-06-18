@@ -35,7 +35,7 @@ Plot* g_pPlot = nullptr;
 VideoPlayer* g_pVideoPlayer = nullptr;
 DataManager* g_DataManager = nullptr;
 
-QMap<double, dataunit*> g_mapData;
+QVector<RCSRecord> g_vecRCSRecord;
 QMutex g_MutexData;
 
 osgOcean::FFTOceanSurface* g_surface = nullptr;
@@ -341,20 +341,58 @@ void DataManager::GetPlanePathEnv(double& dx1, double& dy1, double& dx2, double&
 	dH = m_dH;
 }
 
+#include <QtGui/QPainter>
+
 bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QString rcsfile, QString video)
 {
 	cTime timeStart;
-	QVector<dataunit*> vecData;
+	QVector<dataunit> vecData;
 
 	if (!gps_rcs_files_read(gpsfile, targpsfile, rcsfile, vecData, timeStart))
 		return false;
 
+
+	{
+		QMutexLocker locker(&g_MutexData);
+		g_vecRCSRecord.clear();
+		g_vecRCSRecord.reserve(vecData.size());
+
+		double dTimeFirst = vecData[0].dTime;
+
+// 		QImage image(800, 600, QImage::Format_RGB32);
+// 		image.fill(Qt::white);
+// 		QPainter painter(&image);
+// 		painter.setPen(Qt::red);
+// 
+// 		QPointF* pPoints = new QPointF[vecData.size()];
+// 		int i = 0;
+
+		for (auto& dataUint : vecData)
+		{
+			RCSRecord record;
+			record.dTime = dataUint.dTime - dTimeFirst;
+			record.angle = dataUint.angle;
+			record.RCS_dB = dataUint.RCS_dB;
+
+			g_vecRCSRecord.push_back(record);
+
+// 			pPoints[i].setX(dataUint.angle * 2.0);
+// 			pPoints[i].setY(dataUint.RCS_dB *8.0);
+// 			i++;
+		}
+
+// 		painter.drawPolyline(pPoints, vecData.size());
+// 		delete pPoints;
+// 		pPoints = nullptr;
+// 		image.save("d:/rcs_test.png");
+	}
+
 	int nCount = vecData.size();
-	double dIncre = (vecData[nCount - 1]->dTime - vecData[0]->dTime) / (nCount - 1);
+	double dIncre = (vecData[nCount - 1].dTime - vecData[0].dTime) / (nCount - 1);
 
 	for (int i = 0; i < nCount; i++)
 	{
-		vecData[i]->dTime = vecData[0]->dTime + dIncre * i;
+		vecData[i].dTime = vecData[0].dTime + dIncre * i;
 	}
 
 	int nTemp = 0;
@@ -363,19 +401,19 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 	if (vecData.isEmpty())
 		return false;
 
-	m_dLeft = vecData[0]->plane_lon;
-	m_dRight = vecData[0]->plane_lon;
-	m_dTop = vecData[0]->plane_lat;
-	m_dBottom = vecData[0]->plane_lat;
-	m_dH = vecData[0]->plane_Height;
+	m_dLeft = vecData[0].plane_lon;
+	m_dRight = vecData[0].plane_lon;
+	m_dTop = vecData[0].plane_lat;
+	m_dBottom = vecData[0].plane_lat;
+	m_dH = vecData[0].plane_Height;
 
-	QVector<dataunit*> listData;
+	QVector<dataunit> listData;
 	listData.push_back(vecData[0]);
 
 	for (int i = 1; i < nCount; i++)
 	{
-		double dLon = vecData[i]->plane_lon - vecData[nTemp]->plane_lon;
-		double dLat = vecData[i]->plane_lat - vecData[nTemp]->plane_lat;
+		double dLon = vecData[i].plane_lon - vecData[nTemp].plane_lon;
+		double dLat = vecData[i].plane_lat - vecData[nTemp].plane_lat;
 
 		if (sqrt(dLon * dLon + dLat * dLat) > dKey)
 		{
@@ -383,25 +421,17 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 			listData.push_back(vecData[i]);
 
 			//求出飞行路线的外接范围。
-			if (m_dLeft > vecData[i]->plane_lon)
-				m_dLeft = vecData[i]->plane_lon;
+			if (m_dLeft > vecData[i].plane_lon)
+				m_dLeft = vecData[i].plane_lon;
 
-			if (m_dRight < vecData[i]->plane_lon)
-				m_dRight = vecData[i]->plane_lon;
+			if (m_dRight < vecData[i].plane_lon)
+				m_dRight = vecData[i].plane_lon;
 
-			if (m_dTop < vecData[i]->plane_lat)
-				m_dTop = vecData[i]->plane_lat;
+			if (m_dTop < vecData[i].plane_lat)
+				m_dTop = vecData[i].plane_lat;
 
-			if (m_dBottom > vecData[i]->plane_lat)
-				m_dBottom = vecData[i]->plane_lat;
-		}
-		else
-		{
-			dataunit* pUnit = vecData[i];
-			delete pUnit;
-			pUnit = nullptr;
-
-			continue;
+			if (m_dBottom > vecData[i].plane_lat)
+				m_dBottom = vecData[i].plane_lat;
 		}
 	}
 
@@ -419,20 +449,20 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 	m_pTargetAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPathTarget));
 
 	osg::Vec3d scale(m_dScale, m_dScale, m_dScale);
-	double dTime = listData[0]->dTime;
+	double dTime = listData[0].dTime;
 	int nSize = listData.size();
 
 	for (int i = 0; i < nSize; i++)
 	{
 		osg::Quat quat;
-		osg::Vec3d position(listData[i]->plane_lon, listData[i]->plane_lat, listData[i]->plane_Height * 0.000008983152841195214); // * 0.000008983152841195214 转为经纬度
+		osg::Vec3d position(listData[i].plane_lon, listData[i].plane_lat, listData[i].plane_Height * 0.000008983152841195214); // * 0.000008983152841195214 转为经纬度
 
 		if (i != 0 && i < nSize - 1)
 		{
 			osg::Vec3 vec0(1.0, 0.0, 0.0);
 
-			double dLon = listData[i + 1]->plane_lon - listData[i - 1]->plane_lon;
-			double dLat = listData[i + 1]->plane_lat - listData[i - 1]->plane_lat;
+			double dLon = listData[i + 1].plane_lon - listData[i - 1].plane_lon;
+			double dLat = listData[i + 1].plane_lat - listData[i - 1].plane_lat;
 			if (dLon == 0.0 && dLat == 0.0)
 			{
 				continue;
@@ -442,21 +472,21 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 			quat.makeRotate(vec0, vec1);
 		}
 
-		animationPathPlane->insert(listData[i]->dTime - dTime, osg::AnimationPath::ControlPoint(position, quat, scale));
+		animationPathPlane->insert(listData[i].dTime - dTime, osg::AnimationPath::ControlPoint(position, quat, scale));
 	}
 
 	osg::Vec3d scaleTarget(m_dTargetScale, m_dTargetScale, m_dTargetScale);
 	for (int i = 0; i < nSize; i++)
 	{
 		osg::Quat quat;
-		osg::Vec3d position(listData[i]->target_lon, listData[i]->target_lat, listData[i]->target_Height *  0.000008983152841195214);
+		osg::Vec3d position(listData[i].target_lon, listData[i].target_lat, listData[i].target_Height *  0.000008983152841195214);
 
 		if (i != 0 && i < nSize - 1)
 		{
 			osg::Vec3 vec0(1.0, 0.0, 0.0);
 
-			double dLon = listData[i + 1]->target_lon - listData[i - 1]->target_lon;
-			double dLat = listData[i + 1]->target_lat - listData[i - 1]->target_lat;
+			double dLon = listData[i + 1].target_lon - listData[i - 1].target_lon;
+			double dLat = listData[i + 1].target_lat - listData[i - 1].target_lat;
 
 			if (dLon == 0.0 && dLat == 0.0)
 			{
@@ -466,40 +496,10 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 			osg::Vec3 vec1(dLon, dLat, 0.0);
 		}
 
-		animationPathTarget->insert(listData[i]->dTime - dTime, osg::AnimationPath::ControlPoint(position, quat, scaleTarget));
+		animationPathTarget->insert(listData[i].dTime - dTime, osg::AnimationPath::ControlPoint(position, quat, scaleTarget));
 	}
 
-	{
-		QMutexLocker locker(&g_MutexData);
-
-		for (QMap<double, dataunit*>::Iterator itr = g_mapData.begin(); itr != g_mapData.end(); itr ++)
-		{
-			dataunit* pUnit = itr.value();
-			delete pUnit;
-			pUnit = nullptr;
-		}
-
-		g_mapData.clear();
-		double dTimeFirst = listData[0]->dTime;
-
-		for (QVector<dataunit*>::Iterator itr = listData.begin(); itr != listData.end(); itr ++)
-		{
-			double dTime = (*itr)->dTime - dTimeFirst;
-
-			QMap<double, dataunit*>::Iterator itrMap = g_mapData.find(dTime);
-			if (itrMap == g_mapData.end())
-			{
-				g_mapData.insert(dTime, *itr);
-			}
-			else
-			{
-				delete *itr;
-			}
-		}
-
-		listData.clear();
-		//g_vecData = listData;
-	}
+	listData.clear();
 
 	SignalData::instance().Clear();
 
