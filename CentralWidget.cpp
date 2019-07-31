@@ -12,6 +12,8 @@
 #include "MainWindow3D.h"
 #include "DataManager.h"
 #include "DisplayFileSelectDlg.h"
+#include <QHelpEvent>
+#include "MySqlTableModel.h"
 
 CentralWidget::CentralWidget(QWidget *parent)
 	: QWidget(parent)
@@ -36,7 +38,7 @@ CentralWidget::~CentralWidget()
 
 void CentralWidget::slotSubmit()
 {
-	QSqlTableModel* model = (QSqlTableModel*)ui.tableView->model();
+	QSqlTableModel* model = qobject_cast<QSqlTableModel*>(ui.tableView->model());
 	if (!model)
 		return;
 
@@ -184,7 +186,7 @@ void CentralWidget::showBlank()
 		return;
 
 	pTableModel->clear();
-	ui.tableView->repaint();
+	ui.tableView->update();
 }
 
 void CentralWidget::showDBTable(const QString& strCurrentDir, const QJsonObject& currentObj)
@@ -227,7 +229,7 @@ void CentralWidget::showSelectDBTable(const QString& strCurrentDir, const QJsonO
 	pTableModel->select(); //选取整个表的所有行
 	// pTableModel->removeColumn(1); //不显示第二列,如果这时添加记录，则该属性的值添加不上
 
-	ui.tableView->repaint();
+	ui.tableView->update();
 	//View->setEditTriggers(QAbstractItemView::NoEditTriggers); 使其不可编辑
 }
 
@@ -239,24 +241,27 @@ void CentralWidget::setDelegate(const QJsonObject& currentObj)
 		QJsonObject field = fields.at(i).toObject();
 		QString strFieldType = field.value(Field_DataType).toString();
 
-		QAbstractItemDelegate* pDelegate = ui.tableView->itemDelegateForColumn(i + 1);
-		if (pDelegate)
-		{
-			delete pDelegate;
-		}
-
 		if (strFieldType.compare(FieldType_Int_Des) == 0)
 		{
+			QAbstractItemDelegate* pDelegate = ui.tableView->itemDelegateForColumn(i + 1);
+			if (pDelegate) delete pDelegate;
+
 			IntDelegate* pNewDelegate = new IntDelegate;
 			ui.tableView->setItemDelegateForColumn(i + 1, pNewDelegate);
 		}
 		else if (strFieldType.compare(FieldType_Double_Des) == 0)
 		{
+			QAbstractItemDelegate* pDelegate = ui.tableView->itemDelegateForColumn(i + 1);
+			if (pDelegate) delete pDelegate;
+
 			DoubleDelegate* pNewDelegate = new DoubleDelegate;
 			ui.tableView->setItemDelegateForColumn(i + 1, pNewDelegate);
 		}
 		else if (strFieldType.compare(FieldType_Bool_Des) == 0)
 		{
+			QAbstractItemDelegate* pDelegate = ui.tableView->itemDelegateForColumn(i + 1);
+			if (pDelegate) delete pDelegate;
+
 			BoolDelegate* pNewDelegate = new BoolDelegate;
 			ui.tableView->setItemDelegateForColumn(i + 1, pNewDelegate);
 		}
@@ -266,11 +271,17 @@ void CentralWidget::setDelegate(const QJsonObject& currentObj)
 		}
 		else if (strFieldType.compare(FieldType_File_Des) == 0)
 		{
+			QAbstractItemDelegate* pDelegate = ui.tableView->itemDelegateForColumn(i + 1);
+			if (pDelegate) delete pDelegate;
+
 			FileDelegate* pNewDelegate = new FileDelegate;
 			ui.tableView->setItemDelegateForColumn(i + 1, pNewDelegate);
 		}
 		else if (strFieldType.compare(FieldType_DateTime_Des) == 0)
 		{
+			QAbstractItemDelegate* pDelegate = ui.tableView->itemDelegateForColumn(i + 1);
+			if (pDelegate) delete pDelegate;
+
 			DateDelegate* pNewDelegate = new DateDelegate;
 			ui.tableView->setItemDelegateForColumn(i + 1, pNewDelegate);
 		}
@@ -278,6 +289,9 @@ void CentralWidget::setDelegate(const QJsonObject& currentObj)
 			|| strFieldType.compare(FieldType_OBTarget_Des) == 0
 			|| strFieldType.compare(FieldType_Polarity_Des) == 0)
 		{
+			QAbstractItemDelegate* pDelegate = ui.tableView->itemDelegateForColumn(i + 1);
+			if (pDelegate) delete pDelegate;
+
 			EnumDelegate* pNewDelegate = new EnumDelegate(strFieldType);
 			ui.tableView->setItemDelegateForColumn(i + 1, pNewDelegate);
 		}
@@ -294,7 +308,7 @@ void CentralWidget::changeDatabase()
 	}
 
 	//model与database是相关联的，需要重新创建
-	QSqlTableModel* model = new QSqlTableModel(this);
+	QSqlTableModel* model = new MyModel(this, QSqlDatabase::database());
 	ui.tableView->setModel(model);
 
 	connect(model, SIGNAL(beforeDelete(int)), this, SLOT(slotBeforeDelete(int)));

@@ -91,6 +91,7 @@ public:
 		
 		return  lineEdit;
 	}
+
 	void  setEditorData(QWidget *editor, const  QModelIndex &index)  const
 	{
 		QString text = index.model()->data(index, Qt::EditRole).toString();

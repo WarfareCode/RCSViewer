@@ -21,6 +21,7 @@
 #include <QJsonArray>
 #include <QCoreApplication>
 #include <QMessageBox>
+#include "SearchGlobalDlg.h"
 
 #include "QtnRibbonDef.h"
 #include "QtnRibbonQuickAccessBar.h"
@@ -35,7 +36,7 @@ MainWindow::MainWindow(QWidget *parent)
 	: Qtitan::RibbonMainWindow(parent)
 {
 	m_ribbonStyle = qobject_cast<Qtitan::RibbonStyle*>(qApp->style());
-	m_ribbonStyle->setTheme(OfficeStyle::Office2016Colorful);
+	m_ribbonStyle->setTheme(OfficeStyle::Office2016DarkGray);
 
 	m_defaultFont = 8;
 
@@ -160,6 +161,14 @@ void MainWindow::slotNewProject()
 	}
 }
 
+void MainWindow::slotSearchGlobal()
+{
+	SearchGlobalDlg dlg(m_listRecentProject, this);
+	dlg.exec();
+
+
+}
+
 void MainWindow::slotRencentProject()
 {
 	QAction* pAction = (QAction*)sender();
@@ -265,8 +274,18 @@ void MainWindow::createMenuFile()
 
 void MainWindow::createRibbon()
 {
-	if (Qtitan::RibbonPage* pageButtons = ribbonBar()->addPage(tr("&Home")))
+	if (Qtitan::RibbonPage* pageButtons = ribbonBar()->addPage(QString::fromLocal8Bit("数据搜索")))
 	{
+		if (Qtitan::RibbonGroup* groupClipboard = pageButtons->addGroup(""/*QString::fromLocal8Bit("搜索")*/))
+		{
+			enum QStyle::StandardPixmap Icon = (enum QStyle::StandardPixmap)35;
+			QIcon ico = QApplication::style()->standardIcon(Icon);
+
+ 			QAction* actionCut = groupClipboard->addAction(ico/*QIcon("/:images/find.png")*//*QIcon(":/res/smallCut.png")*/,
+				QString::fromLocal8Bit("全局搜索"), Qt::ToolButtonTextUnderIcon);
+
+			connect(actionCut, SIGNAL(triggered()), this, SLOT(slotSearchGlobal()));
+		}
 // 		if (Qtitan::RibbonGroup* groupClipboard = pageButtons->addGroup(tr("Clipboard")))
 // 		{
 // 			QMenu* editPaste = new QMenu(this);
@@ -449,7 +468,7 @@ void MainWindow::optionsTheme(QAction* action)
 		else if (action->objectName() == "Office2010Black")
 			themeId = Qtitan::OfficeStyle::Office2010Black;
 		else if (action->objectName() == "Office2016Colorful")
-			themeId = Qtitan::OfficeStyle::Office2016White;
+			themeId = Qtitan::OfficeStyle::Office2016Colorful;
 		else if (action->objectName() == "Office2016White")
 			themeId = Qtitan::OfficeStyle::Office2016White;
 		else if (action->objectName() == "Office2016DarkGray")

@@ -590,12 +590,18 @@ bool gps_rcs_files_read_single(QString gpsfile,
 	double *tar_hx_intp = new double[N];
 
 	
-
+	for (int i = 0; i < N; i ++)
+	{
+		tar_lati_intp[i] = tar_lat;
+		tar_logn_intp[i] = tar_lon;
+		tar_h_intp[i] = tar_h;
+		tar_hx_intp[i] = tar_hx;
+	}
 	
-	memset(tar_lati_intp, tar_lat, sizeof(double)*N);
-	memset(tar_logn_intp, tar_lon, sizeof(double)*N);
-	memset(tar_h_intp, tar_h, sizeof(double)*N);
-	memset(tar_hx_intp,tar_hx, sizeof(double)*N);
+// 	memset(tar_lati_intp, tar_lat, sizeof(double)*N);
+// 	memset(tar_logn_intp, tar_lon, sizeof(double)*N);
+// 	memset(tar_h_intp, tar_h, sizeof(double)*N);
+// 	memset(tar_hx_intp,tar_hx, sizeof(double)*N);
 	
 
 	// plane
@@ -630,7 +636,7 @@ bool gps_rcs_files_read_single(QString gpsfile,
 	memset(azAngle, 0, sizeof(double)*rcs_points);
 	memset(ptAngle, 0, sizeof(double)*rcs_points);
 	memset(sltRange, 0, sizeof(double)*rcs_points);	
-   double delte_T=(plat_end_sec-plat_sta_sec)/(rcs_points-1);
+   double delte_T=(plat_end_sec-plat_sta_sec)/(double)(rcs_points-1);
 
 	int hour_temp, min_temp;
     int RCS_index;
@@ -695,10 +701,55 @@ bool gps_rcs_files_read_single(QString gpsfile,
 	delete[] sltRange;        sltRange = NULL;
 
 	return true;
-		
-		
-		
-		
-		
-		
+	}
+
+	bool gps_rcs_files_read_Ex(QString gpsfile,
+		QString targpsfile,
+		QString rcsfile,
+		QVector<dataunit> &vec_data,
+		cTime& startTime)
+	{
+		//判断目标GPS是不是只有一帧
+
+		double dLon, dLat, dH, dHx;
+		long tar_gps_point = 0;
+
+		std::ifstream fin1(targpsfile.toLocal8Bit().data(), std::ios::in);
+
+		char line[1024];
+		while (fin1.getline(line, sizeof(line)))
+		{
+			QString cmd = QString("%1").arg(line);
+			if (cmd.isEmpty())
+				continue;
+
+			QStringList list;
+			list = cmd.split(QRegExp("\\s+"));
+			if (tar_gps_point >= MAX_RCS_POINTS)
+				break;
+
+			if (0 == tar_gps_point)
+			{
+				dLon = list.at(1).toDouble();
+				dLat = list.at(2).toDouble();
+				dH = list.at(3).toDouble();
+				dHx = list.at(6).toDouble();
+			}
+
+			tar_gps_point++;
+		}
+		fin1.close();
+
+		if (tar_gps_point == 1)
+		{
+			if (!gps_rcs_files_read_single(gpsfile, dLon, dLat, dH, dHx, rcsfile, vec_data, startTime))
+				return false;
+		}
+		else
+		{
+			if (!gps_rcs_files_read(gpsfile, targpsfile, rcsfile, vec_data, startTime))
+				return false;
+		}
+
+		return true;
 	}

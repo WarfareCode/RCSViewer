@@ -161,6 +161,9 @@
     <ClCompile Include="GeneratedFiles\Debug\moc_samplingthread.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_SearchGlobalDlg.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_SetPathDlg.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
@@ -248,6 +251,9 @@
     <ClCompile Include="GeneratedFiles\Release\moc_samplingthread.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_SearchGlobalDlg.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="GeneratedFiles\Release\moc_SetPathDlg.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
@@ -280,6 +286,7 @@
     <ClCompile Include="RadarBeamRotateDlg.cpp" />
     <ClCompile Include="samplingthread.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SearchGlobalDlg.cpp" />
     <ClCompile Include="SetPathDlg.cpp" />
     <ClCompile Include="signaldata.cpp" />
     <ClCompile Include="SkyDome.cpp" />
@@ -501,6 +508,7 @@
     <ClInclude Include="GeneratedFiles\ui_OBEnumInputDlg.h" />
     <ClInclude Include="GeneratedFiles\ui_OpenProjectDlg.h" />
     <ClInclude Include="GeneratedFiles\ui_PlotRangeDlg.h" />
+    <ClInclude Include="GeneratedFiles\ui_SearchGlobalDlg.h" />
     <ClInclude Include="GeneratedFiles\ui_SetPathDlg.h" />
     <ClInclude Include="GeneratedFiles\ui_SQLSelectDlg.h" />
     <ClInclude Include="GeneratedFiles\ui_TypeTreeView.h" />
@@ -540,6 +548,7 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQWT_DLL -D_MBCS  "-ID:\OpenSceneGraph3.4.0\OpenSceneGraph-3.4.0\include" "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-ID:\OpenSceneGraph3.4.0\osgocean\include" "-I$(QTDIR)\include\QtSql" "-ID:\OpenSceneGraph3.4.0\QtitanRibbon\include" "-ID:\OpenSceneGraph3.4.0\qwt\src" "-ID:\MyProject\gdal2.2\220\bld\include"</Command>
     </CustomBuild>
+    <ClInclude Include="resource1.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ScopedTimer.h" />
     <CustomBuild Include="SetPathDlg.h">
@@ -549,6 +558,16 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DWIN32 -DWIN64 -DQT_DLL -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQWT_DLL -D_MBCS "-ID:\OpenSceneGraph3.4.0\OpenSceneGraph-3.4.0\include" "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-ID:\OpenSceneGraph3.4.0\osgocean\include" "-I$(QTDIR)\include\QtSql" "-ID:\OpenSceneGraph3.4.0\QtitanRibbon\include" "-ID:\OpenSceneGraph3.4.0\qwt\src"</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing SetPathDlg.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQWT_DLL -D_MBCS "-ID:\OpenSceneGraph3.4.0\OpenSceneGraph-3.4.0\include" "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-ID:\OpenSceneGraph3.4.0\osgocean\include" "-I$(QTDIR)\include\QtSql" "-ID:\OpenSceneGraph3.4.0\QtitanRibbon\include" "-ID:\OpenSceneGraph3.4.0\qwt\src" "-ID:\MyProject\gdal2.2\220\bld\include"</Command>
+    </CustomBuild>
+    <CustomBuild Include="SearchGlobalDlg.h">
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing SearchGlobalDlg.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DWIN32 -DWIN64 -DQT_DLL -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQWT_DLL -D_MBCS "-ID:\OpenSceneGraph3.4.0\OpenSceneGraph-3.4.0\include" "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-ID:\OpenSceneGraph3.4.0\osgocean\include" "-I$(QTDIR)\include\QtSql" "-ID:\OpenSceneGraph3.4.0\QtitanRibbon\include" "-ID:\OpenSceneGraph3.4.0\qwt\src"</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing SearchGlobalDlg.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQWT_DLL -D_MBCS "-ID:\OpenSceneGraph3.4.0\OpenSceneGraph-3.4.0\include" "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-ID:\OpenSceneGraph3.4.0\osgocean\include" "-I$(QTDIR)\include\QtSql" "-ID:\OpenSceneGraph3.4.0\QtitanRibbon\include" "-ID:\OpenSceneGraph3.4.0\qwt\src" "-ID:\MyProject\gdal2.2\220\bld\include"</Command>
     </CustomBuild>
@@ -881,6 +900,26 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="PlotRangeDlg.ui">
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Uic%27ing %(Identity)...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\GeneratedFiles\ui_%(Filename).h;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(QTDIR)\bin\uic.exe" -o ".\GeneratedFiles\ui_%(Filename).h" "%(FullPath)"</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Uic%27ing %(Identity)...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\ui_%(Filename).h;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\uic.exe" -o ".\GeneratedFiles\ui_%(Filename).h" "%(FullPath)"</Command>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="RCSViewer.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="C:\Users\Administrator\Desktop\RCS相关\find.png" />
+    <Image Include="icon1.ico" />
+    <Image Include="icon2.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="SearchGlobalDlg.ui">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Uic%27ing %(Identity)...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\GeneratedFiles\ui_%(Filename).h;%(Outputs)</Outputs>

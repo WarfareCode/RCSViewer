@@ -29,6 +29,8 @@ public slots:
 
 	void slotRencentProject();
 
+	void slotSearchGlobal();
+
 public:
 
 	void loadRencentProjectConfig();

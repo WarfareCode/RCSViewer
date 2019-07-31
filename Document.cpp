@@ -61,7 +61,7 @@ bool Document::openProject(const QString& strDir)
 {
 	m_strProjectDir = strDir;
 
-	QSqlDatabase database;
+//	QSqlDatabase database;
 // 	if (QSqlDatabase::contains("qt_sql_default_connection"))
 // 	{
 // 		database = QSqlDatabase::database("qt_sql_default_connection");
@@ -70,7 +70,13 @@ bool Document::openProject(const QString& strDir)
 // 		QSqlDatabase::removeDatabase("qt_sql_default_connection");
 // 	}
 
-	database = QSqlDatabase::addDatabase("QSQLITE");
+	QSqlDatabase database = QSqlDatabase::database();
+	if (!database.isValid())
+	{
+		database = QSqlDatabase::addDatabase("QSQLITE");
+	}
+
+	database.close();
 	database.setDatabaseName(sqliteFilePath());
 	// 	database.setUserName("XingYeZhiXia");
 	// 	database.setPassword("123456");
@@ -78,6 +84,8 @@ bool Document::openProject(const QString& strDir)
 	if (!database.open())
 	{
 		m_bValid = false;
+
+		printf("error: can not open database!");
 		return false;
 	}
 
@@ -330,9 +338,10 @@ bool Document::addRecord(const QString& strClassFilePath, const QJsonObject& cla
 bool Document::deleteClass(const QString& strFilePath)
 {
 	QJsonObject object;
+	classFile2JsonObj(strFilePath, object);
 	QString strGUID = object.value(Class_Guid).toString();
 
-	if (Document::needCopyFile() && classFile2JsonObj(strFilePath, object))
+	if (Document::needCopyFile())
 	{
 		QStringList listFileField;
 		QJsonArray fields = object.value(Class_Fields).toArray();

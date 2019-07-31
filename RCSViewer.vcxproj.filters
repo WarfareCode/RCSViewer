@@ -329,6 +329,15 @@
     <ClCompile Include="OrientationCallback.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SearchGlobalDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_SearchGlobalDlg.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_SearchGlobalDlg.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.ui">
@@ -484,6 +493,12 @@
     <CustomBuild Include="PlotRangeDlg.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="SearchGlobalDlg.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="SearchGlobalDlg.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_MainWindow.h">
@@ -597,5 +612,19 @@
     <ClInclude Include="OrientationCallback.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_SearchGlobalDlg.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="RCSViewer.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="C:\Users\Administrator\Desktop\RCS相关\find.png" />
+    <Image Include="icon1.ico" />
+    <Image Include="icon2.ico" />
   </ItemGroup>
 </Project>

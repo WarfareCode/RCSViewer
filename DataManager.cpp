@@ -348,9 +348,16 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 	cTime timeStart;
 	QVector<dataunit> vecData;
 
-	if (!gps_rcs_files_read(gpsfile, targpsfile, rcsfile, vecData, timeStart))
+	if (!gps_rcs_files_read_Ex(gpsfile, targpsfile, rcsfile, vecData, timeStart))
 		return false;
 
+	int nCount = vecData.size();
+	double dIncre = (vecData[nCount - 1].dTime - vecData[0].dTime) / (nCount - 1);
+
+	for (int i = 0; i < nCount; i++)
+	{
+		vecData[i].dTime = vecData[0].dTime + dIncre * i;
+	}
 
 	{
 		QMutexLocker locker(&g_MutexData);
@@ -385,14 +392,6 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 // 		delete pPoints;
 // 		pPoints = nullptr;
 // 		image.save("d:/rcs_test.png");
-	}
-
-	int nCount = vecData.size();
-	double dIncre = (vecData[nCount - 1].dTime - vecData[0].dTime) / (nCount - 1);
-
-	for (int i = 0; i < nCount; i++)
-	{
-		vecData[i].dTime = vecData[0].dTime + dIncre * i;
 	}
 
 	int nTemp = 0;

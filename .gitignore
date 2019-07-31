@@ -120,3 +120,5 @@ GeneratedFiles/ui_PlotRangeDlg.h
 GeneratedFiles/Debug/moc_PlotRangeDlg.cpp
 gps_rcs_files_read - 副本.cpp
 gps_rcs_files_read - 副本.h
+GeneratedFiles/ui_SearchGlobalDlg.h
+GeneratedFiles/Debug/moc_SearchGlobalDlg.cpp

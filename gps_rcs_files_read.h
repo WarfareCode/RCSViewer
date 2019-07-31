@@ -47,6 +47,7 @@ bool gps_rcs_files_read(QString gpsfile,
 	QString rcsfile,
 	QVector<dataunit> &vec_data, 
 	cTime& startTime);
+
     bool gps_rcs_files_read_single(QString gpsfile,
 	double tar_lon,
 	double tar_lat,
@@ -55,5 +56,11 @@ bool gps_rcs_files_read(QString gpsfile,
 	QString rcsfile,
 	QVector<dataunit> &vec_data, 
 	cTime& startTime);
+
+	bool gps_rcs_files_read_Ex(QString gpsfile,
+		QString targpsfile,
+		QString rcsfile,
+		QVector<dataunit> &vec_data,
+		cTime& startTime);
 
 #endif // GPS_RCS_FILES_READ_H
