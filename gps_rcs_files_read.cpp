@@ -310,14 +310,17 @@ bool gps_rcs_files_read(QString gpsfile,
 	memset(plane_logn_intp, 0, sizeof(double)*N);
 	memset(plane_h_intp, 0, sizeof(double)*N);
 
-	double *intp_x_tar = new double[rcs_points];
-	double *intp_x_plane = new double[rcs_points];
-	
-	for (long k = 0; k < rcs_points; k++)  
-	   intp_x_tar[k] = tar_points*(double)k / rcs_points;
 
-	for (long k = 0; k < rcs_points; k++)  
-		intp_x_plane[k] = plat_gps_point*(double)k / rcs_points;
+
+
+    double *intp_x_tar = new double[N];
+    double *intp_x_plane = new double[N];
+	
+    for (long k = 0; k < N; k++)
+       intp_x_tar[k] = tar_points*(double)k / N;
+
+    for (long k = 0; k < N; k++)
+        intp_x_plane[k] = plat_gps_point*(double)k / N;
 
 	// interp for target gps data
 	LinearIntp(intp_x_tar, tar_lati_intp, rcs_points, tar_lati_raw + tar_loc_sta, tar_points);
@@ -616,10 +619,10 @@ bool gps_rcs_files_read_single(QString gpsfile,
 	
 	
 	
-	double *intp_x_plane = new double[rcs_points];
+    double *intp_x_plane = new double[N];
 
-	for (long k = 0; k < rcs_points; k++)  
-		intp_x_plane[k] = plat_gps_point*(double)k / rcs_points;
+    for (long k = 0; k < N; k++)
+        intp_x_plane[k] = plat_gps_point*(double)k / N;
 
 	// interp for target gps data
 	
@@ -725,6 +728,12 @@ bool gps_rcs_files_read_single(QString gpsfile,
 
 			QStringList list;
 			list = cmd.split(QRegExp("\\s+"));
+
+			if (list.size() < 7)
+			{
+				return false;
+			}
+
 			if (tar_gps_point >= MAX_RCS_POINTS)
 				break;
 

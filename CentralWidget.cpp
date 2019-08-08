@@ -14,6 +14,7 @@
 #include "DisplayFileSelectDlg.h"
 #include <QHelpEvent>
 #include "MySqlTableModel.h"
+#include <QMessageBox>
 
 CentralWidget::CentralWidget(QWidget *parent)
 	: QWidget(parent)
@@ -52,6 +53,8 @@ void CentralWidget::slotSubmit()
 		QMessageBox::warning(this, tr("tableModel"),
 			QStringLiteral("数据库错误:") + tr("%1").arg(model->lastError().text()));
 	}
+
+	QMessageBox::information(this, QString::fromLocal8Bit("提示"), QString::fromLocal8Bit("修改成功！"));
 
 	//model->database().close();
 }
@@ -143,6 +146,9 @@ void CentralWidget::slot3DView()
 		listFilePath.push_back(strContent);
 	}
 
+	if (listFileFieldName.size() <= 0 || listFilePath.size() <= 0)
+		return;
+
 	DisplayFileSelectDlg dlg(listFileFieldName, listFilePath);
 	if (dlg.exec())
 	{
@@ -197,6 +203,17 @@ void CentralWidget::showDBTable(const QString& strCurrentDir, const QJsonObject&
 
 	QSqlTableModel* pTableModel = (QSqlTableModel*)ui.tableView->model();
 	if (pTableModel == nullptr)
+		return;
+
+	QSqlDatabase database = QSqlDatabase::database();
+	if (!database.isValid())
+	{
+		database = QSqlDatabase::addDatabase("QSQLITE");
+	}
+
+	database.close();
+	database.setDatabaseName(Document::sqliteFilePath());
+	if (!database.open())
 		return;
 
 	//pTableModel->SetJsonObj(currentObj);

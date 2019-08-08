@@ -1,13 +1,16 @@
 #include "samplingthread.h"
 #include "signaldata.h"
-
+#include "DataManager.h"
 #include <qwt_math.h>
 #include <qmath.h>
 #include <QVector>
 #include <QtCore/QMap>
 #include <QMutexLocker>
+#include <osg/AnimationPath>
+#include <osg/PositionAttitudeTransform>
 #include "gps_rcs_files_read.h"
 #include "plot.h"
+//
 
 #if QT_VERSION < 0x040600
 #define qFastSin(x) ::sin(x)
@@ -56,6 +59,25 @@ void SamplingThread::sample( double elapsed )
 
 		if (g_vecRCSRecord.isEmpty())
 			return;
+
+		osg::Callback* pCallback = DataManager::Instance()->GetPlaneParentNode()->getUpdateCallback();
+		if (pCallback)
+		{
+			osg::AnimationPathCallback* pAnimationCallback = dynamic_cast<osg::AnimationPathCallback*>(pCallback);
+			if (pAnimationCallback)
+			{
+				bool bPause = pAnimationCallback->getPause();
+				if (bPause)
+				{
+					elapsed = ((pAnimationCallback->_pauseTime - pAnimationCallback->_firstTime)
+						- pAnimationCallback->_timeOffset)*pAnimationCallback->_timeMultiplier;
+				}
+				else
+				{
+					elapsed = pAnimationCallback->getAnimationTime();
+				}
+			}
+		}
 
 		double dTimeTotal = g_vecRCSRecord.last().dTime;
 		double dTemp = elapsed / dTimeTotal;

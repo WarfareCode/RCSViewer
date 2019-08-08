@@ -21,7 +21,7 @@
 #include <QtCore/QTime>
 #include <QtCore/QMap>
 #include "gps_rcs_files_read.h"
-#include "samplingthread.h"
+
 #include "PlaneLOD.h"
 #include <osgOcean/ShaderManager>
 #include <osgOcean/FFTOceanSurface>
@@ -29,6 +29,7 @@
 #include <osg/Switch>
 #include "plot.h"
 #include "signaldata.h"
+#include "samplingthread.h"
 
 SamplingThread* g_pSampleThread = nullptr;
 Plot* g_pPlot = nullptr;
@@ -444,8 +445,15 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 	osg::AnimationPath* animationPathTarget = new osg::AnimationPath;
 	animationPathTarget->setLoopMode(osg::AnimationPath::LOOP);
 
-	m_pAerocraftAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPathPlane));
-	m_pTargetAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPathTarget));
+	{
+		//加锁，samplingthread里会调用AnimationPathCallback指针，获取时间
+		QMutexLocker locker(&g_MutexData);
+
+		m_pAerocraftAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPathPlane));
+		m_pTargetAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPathTarget));
+	}
+
+
 
 	osg::Vec3d scale(m_dScale, m_dScale, m_dScale);
 	double dTime = listData[0].dTime;
@@ -518,7 +526,7 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 	g_pSampleThread = new SamplingThread;
 	g_pSampleThread->setFrequency(0.05);
 	g_pSampleThread->setAmplitude(40);
-	g_pSampleThread->setInterval(10);
+	g_pSampleThread->setInterval(100);
 	g_pSampleThread->start();
 
 	g_pPlot->start();
@@ -997,6 +1005,20 @@ void DataManager::ResetAnimationPath()
 	pCallback = m_pTargetAnimationNode->getUpdateCallback();
 	pAnimationCallback = dynamic_cast<osg::AnimationPathCallback*>(pCallback);
 	pAnimationCallback->reset();
+}
+
+void DataManager::PauseAnimation()
+{
+	static bool bTag = 0;
+	bTag = !bTag;
+
+	osg::Callback* pCallback = m_pAerocraftAnimationNode->getUpdateCallback();
+	osg::AnimationPathCallback* pAnimationCallback = dynamic_cast<osg::AnimationPathCallback*>(pCallback);
+	pAnimationCallback->setPause(bTag);
+
+	pCallback = m_pTargetAnimationNode->getUpdateCallback();
+	pAnimationCallback = dynamic_cast<osg::AnimationPathCallback*>(pCallback);
+	pAnimationCallback->setPause(bTag);
 }
 
 void DataManager::LoadRadarBeam(const QString& strFile)

@@ -78,6 +78,9 @@ bool Document::openProject(const QString& strDir)
 
 	database.close();
 	database.setDatabaseName(sqliteFilePath());
+	if (!database.open())
+		return false;
+
 	// 	database.setUserName("XingYeZhiXia");
 	// 	database.setPassword("123456");
 
@@ -136,9 +139,17 @@ bool Document::newProject(const QString& strDir)
 		dirType.mkdir(typeDir());
 	}
 
-	QSqlDatabase database;
-	database = QSqlDatabase::addDatabase("QSQLITE");
+	QSqlDatabase database = QSqlDatabase::database();
+	if (!database.isValid())
+	{
+		database = QSqlDatabase::addDatabase("QSQLITE");
+	}
+
+	database.close();
 	database.setDatabaseName(sqliteFilePath());
+	if (!database.open())
+		return false;
+
 // 	database.setUserName("XingYeZhiXia");
 // 	database.setPassword("123456");
 

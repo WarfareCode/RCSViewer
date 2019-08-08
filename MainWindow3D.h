@@ -39,7 +39,9 @@ public slots:
 
 	void slotRadarBeamPara();
 
-	void slotTest();
+	void slotReset();
+
+	void slotPause();
 
 	void slotSetPara();
 

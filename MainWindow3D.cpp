@@ -111,7 +111,10 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 
 	QMenu* pMenuTest = menuBar()->addMenu(QString::fromLocal8Bit("动画"));
 	QAction* pActionTest = pMenuTest->addAction(QString::fromLocal8Bit("重置"));
-	connect(pActionTest, SIGNAL(triggered()), this, SLOT(slotTest()));
+	connect(pActionTest, SIGNAL(triggered()), this, SLOT(slotReset()));
+
+	QAction* pActionPause = pMenuTest->addAction(QString::fromLocal8Bit("暂停"));
+	connect(pActionPause, SIGNAL(triggered()), this, SLOT(slotPause()));
 
 	QMenu* pMenuPara = menuBar()->addMenu(QString::fromLocal8Bit("参数"));
 	QAction* pActionPara = pMenuPara->addAction(QString::fromLocal8Bit("录屏路径"));
@@ -410,7 +413,7 @@ void MainWindow3D::slotRadarBeamPara()
 	dlg.exec();
 }
 
-void MainWindow3D::slotTest()
+void MainWindow3D::slotReset()
 {
 	SignalData::instance().Clear();
 
@@ -431,7 +434,7 @@ void MainWindow3D::slotTest()
 
 	g_pSampleThread->setFrequency(0.05);
 	g_pSampleThread->setAmplitude(40);
-	g_pSampleThread->setInterval(10);
+	g_pSampleThread->setInterval(100);
 
 	g_pSampleThread->start();
 
@@ -441,4 +444,10 @@ void MainWindow3D::slotTest()
 	DataManager* pDataManager = DataManager::Instance();
 	pDataManager->ClearPlanePathLine();
 	pDataManager->ResetAnimationPath();
+}
+ 
+void MainWindow3D::slotPause()
+{
+	DataManager* pDataManager = DataManager::Instance();
+	pDataManager->PauseAnimation();
 }

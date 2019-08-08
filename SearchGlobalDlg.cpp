@@ -28,7 +28,6 @@ SearchGlobalDlg::~SearchGlobalDlg()
 void SearchGlobalDlg::slotSearchGlobal()
 {
 	ui.tableWidget->clear();
-
 	QString strKey = ui.lineEdit->text();
 
 	if (strKey.isEmpty())
@@ -124,7 +123,9 @@ void SearchGlobalDlg::slotSearchGlobal()
 		QList<QPair<QString, QString>>& listColumn = records[j];
 		for (int i = 0; i < listColumn.size(); i ++)
 		{
-			ui.tableWidget->setItem(j, i, new QTableWidgetItem(listColumn[i].second));
+			QTableWidgetItem* pItem = new QTableWidgetItem(listColumn[i].second);
+			pItem->setToolTip(listColumn[i].second);
+			ui.tableWidget->setItem(j, i, pItem);
 		}
 	}
 }

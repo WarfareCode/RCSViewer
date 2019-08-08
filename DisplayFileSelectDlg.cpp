@@ -19,18 +19,42 @@ DisplayFileSelectDlg::DisplayFileSelectDlg(const QStringList& listFileTypeName, 
 		ui.comboBox_Video->addItem(m_listFileTypeName[i] + " : " + m_listFilePath[i]);
 	}
 
-	int nCurrentIndex = 0;
-	ui.comboBox_PlaneGPS->setCurrentIndex(nCurrentIndex++);
+	int nPlaneGPSIndex = 0;
+	int nTargetGPSIndex = 0;
+	int nRCSIndex = 0;
+	int nVideoIndex = 0;
 
-	if (nCurrentIndex >= nCount)
-		nCurrentIndex = nCount - 1;
-	ui.comboBox_TargetGPS->setCurrentIndex(nCurrentIndex++);
+	for (int i = 0; i < m_listFileTypeName.size(); i ++)
+	{
+		QString& strField = m_listFileTypeName[i];
+		if (strField.contains("plane", Qt::CaseInsensitive) 
+			|| strField.contains(QString::fromLocal8Bit("·É")))
+		{
+			nPlaneGPSIndex = i;
+		}
 
-	if (nCurrentIndex >= nCount)
-		nCurrentIndex = nCount - 1;
-	ui.comboBox_RCS->setCurrentIndex(nCurrentIndex++);
+		if (strField.contains("target", Qt::CaseInsensitive)
+			|| strField.contains(QString::fromLocal8Bit("Ä¿±ê")))
+		{
+			nTargetGPSIndex = i;
+		}
 
-	ui.comboBox_Video->setCurrentIndex(0);
+		if (strField.contains("rcs", Qt::CaseInsensitive))
+		{
+			nRCSIndex = i;
+		}
+
+		if (strField.contains("video", Qt::CaseInsensitive)
+			|| strField.contains(QString::fromLocal8Bit("ÊÓÆµ")))
+		{
+			nVideoIndex = i + 1;
+		}
+	}
+
+	ui.comboBox_PlaneGPS->setCurrentIndex(nPlaneGPSIndex);
+	ui.comboBox_TargetGPS->setCurrentIndex(nTargetGPSIndex);
+	ui.comboBox_RCS->setCurrentIndex(nRCSIndex);
+	ui.comboBox_Video->setCurrentIndex(nVideoIndex);
 }
 
 DisplayFileSelectDlg::~DisplayFileSelectDlg()
