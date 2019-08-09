@@ -112,7 +112,7 @@ void MainWindow::deleteRecentProject(const QString& strProjectPath)
 		}
 	}
 
-	//立即保存。方式软件崩溃后无法保存
+	//立即保存。防止软件崩溃后无法保存
 	saveRencentProjectConfig();
 }
 

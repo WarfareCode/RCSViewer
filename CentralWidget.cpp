@@ -16,6 +16,12 @@
 #include "MySqlTableModel.h"
 #include <QMessageBox>
 
+void Show3DMainWindow()
+{
+	static MainWindow3D* pMainwindow3D = new MainWindow3D;
+	pMainwindow3D->showMaximized();
+}
+
 CentralWidget::CentralWidget(QWidget *parent)
 	: QWidget(parent)
 {
@@ -152,8 +158,7 @@ void CentralWidget::slot3DView()
 	DisplayFileSelectDlg dlg(listFileFieldName, listFilePath);
 	if (dlg.exec())
 	{
-		static MainWindow3D* pMainwindow3D = new MainWindow3D;
-		pMainwindow3D->showMaximized();
+		Show3DMainWindow();
 
 		QString strPlaneGPS, strTargetGPS, strRCS, strVideo;
 		dlg.getFilePath(strPlaneGPS, strTargetGPS, strRCS, strVideo);

@@ -16,10 +16,16 @@ public slots:
 
 	void slotSearchGlobal();
 
+	void slotShow3D();
+
 private:
 	Ui::SearchGlobalDlg ui;
 
 	QStringList m_listRecentProject;
+
+	QStringList m_listTableName;
+
+	QMap<QString, QJsonObject>m_mapAllClassInfo;
 };
 
 #endif // SEARCHGLOBALDLG_H
