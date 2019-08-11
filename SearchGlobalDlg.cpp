@@ -133,8 +133,8 @@ void SearchGlobalDlg::slotShow3D()
 
 		if (strFieldType.compare(FieldType_File_Des) == 0)
 		{
-			//0和1为工程和类型名
-			listFileIndex.push_back(i + 2);
+			//0和1为工程和类型名，2为ID
+			listFileIndex.push_back(i + 3);
 			listFileFieldName.push_back(strFieldName);
 		}
 	}
@@ -162,6 +162,9 @@ void SearchGlobalDlg::slotShow3D()
 
 void SearchGlobalDlg::slotSearchGlobal()
 {
+	if (ui.lineEdit->text().isEmpty())
+		return;
+
 	m_listTableName.clear();
 	ui.tableWidget->clear();
 	QString strKey = ui.lineEdit->text();
@@ -223,20 +226,18 @@ void SearchGlobalDlg::slotSearchGlobal()
 
 				while (query.next())
 				{
-					//if (listColumn.empty())
-					{
-						listColumn.push_back(qMakePair(QString::fromLocal8Bit("工程"), str));
-						//类型需要再加一个表来记录。后期加
-						//listColumn.push_back(qMakePair(QString::fromLocal8Bit("类型"), ))
+					//数据库中有记录，但是class已经被删除的，跳过。
+					QMap<QString, QJsonObject>::iterator itr = m_mapAllClassInfo.find(strTable);
+					if (itr == m_mapAllClassInfo.end())
+						continue;
 
-						QMap<QString, QJsonObject>::iterator itr = m_mapAllClassInfo.find(strTable);
-						if (itr != m_mapAllClassInfo.end())
-						{
-							QJsonObject& object = *itr;
-							QString strClassName = object.value(Class_Anno).toString();
-							listColumn.push_back(qMakePair(QString::fromLocal8Bit("类型"), strClassName + ".class"));
-						}
-					}
+					listColumn.push_back(qMakePair(QString::fromLocal8Bit("工程"), str));
+					//类型需要再加一个表来记录。后期加
+					//listColumn.push_back(qMakePair(QString::fromLocal8Bit("类型"), ))
+
+					QJsonObject& object = *itr;
+					QString strClassName = object.value(Class_Anno).toString();
+					listColumn.push_back(qMakePair(QString::fromLocal8Bit("类型"), strClassName + ".class"));
 
 					int nCount = listFieldName.size();
 					if (nMaxFieldCount < nCount)
