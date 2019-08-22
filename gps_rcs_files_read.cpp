@@ -52,11 +52,12 @@ void LinearIntp(double *xout, double *yout, __int64 xn, double *yin, __int64 yn)
 	}
 }
 
-bool gps_rcs_files_read(QString gpsfile,
+bool  gps_rcs_files_read(QString gpsfile,
 	QString targpsfile,
 	QString rcsfile,
 	QVector<dataunit> &vec_data,
-	cTime& startTime)
+    cTime& startTime,
+    pos_90angle &pos90)
 {
 	if (vec_data.size() > 0)
 	{
@@ -162,7 +163,7 @@ bool gps_rcs_files_read(QString gpsfile,
 	if (plat_gps_point == 0)
 	{
 		//QMessageBox::critical(this, tr("错误"), tr("飞机GPS文件无法读取！"));
-		return false;
+        return false;
 	}
 	//read target GPS files   ====读取目标的GPS数据
 
@@ -244,13 +245,57 @@ bool gps_rcs_files_read(QString gpsfile,
 	long plat_end_sec = 0;
 	plat_end_sec = list_e.at(2).toLong() + list_e.at(1).toLong() * 60 + list_e.at(0).toLong() * 3600;;
 
+
+
+
 	long tar_sta_sec = tar_time.at(0).toLong();
 	long tar_end_sec = tar_time.at(tar_gps_point - 1).toLong();
 
-	
-	long tar_loc_sta = long(double(plat_sta_sec - tar_sta_sec)*tar_gps_point / (tar_end_sec - tar_sta_sec + 1)); // IMU update
-	long tar_loc_end = long(double(plat_end_sec - tar_sta_sec)*tar_gps_point / (tar_end_sec - tar_sta_sec + 1));
-	long tar_points = tar_loc_end - tar_loc_sta + 1;
+    //载机起始截止相对目标的位置
+    long tar_loc_sta = long(double(plat_sta_sec - tar_sta_sec)*tar_gps_point / (tar_end_sec - tar_sta_sec + 1)); // IMU update
+    long tar_loc_end = long(double(plat_end_sec - tar_sta_sec)*tar_gps_point / (tar_end_sec - tar_sta_sec + 1));
+
+    //目标起始截止相对于载机的位置
+    long plat_loc_sta=long(double(tar_sta_sec-plat_sta_sec )*(plat_gps_point-1) / (plat_end_sec - plat_sta_sec ));
+    long plat_loc_end=long(double(tar_end_sec - plat_sta_sec)*(plat_gps_point-1) / (plat_end_sec - plat_sta_sec ));
+
+
+
+    double starttime_sec=plat_sta_sec;
+    double endtime_sec=plat_end_sec;
+
+// 相交计算------------------
+    if(plat_sta_sec<tar_sta_sec)
+    {
+        tar_loc_sta=0;
+        starttime_sec=tar_sta_sec;
+
+    }
+    else
+    {
+        plat_loc_sta=0;
+
+    }
+
+
+    if(plat_end_sec>tar_end_sec)
+    {
+        tar_loc_end=tar_gps_point-1;
+        endtime_sec=tar_end_sec;
+    }
+    else
+    {
+        plat_loc_end=plat_gps_point-1;
+
+    }
+
+//实际目标点的数目
+    long tar_points = tar_loc_end - tar_loc_sta + 1;
+//实际载机点的数目
+    long plat_points=plat_loc_end-plat_loc_sta+1;
+
+
+
 
 	if (tar_points <= 0)
 	{
@@ -284,9 +329,17 @@ bool gps_rcs_files_read(QString gpsfile,
 
 	// all above is ok
 	// 插值tar_points,plat_gps_point,rcs_points个点数
-	long N = rcs_points;
-	if ((tar_points > plat_gps_point) && (tar_points > N))	  N = tar_points;
-	if ((plat_gps_point > tar_points) && (plat_gps_point > N)) N = plat_gps_point;
+    //long N = rcs_points;
+    long N=0;
+    //if ((tar_points > plat_gps_point) && (tar_points > N))	  N = tar_points;
+    //if ((plat_gps_point > tar_points) && (plat_gps_point > N)) N = plat_gps_point;
+
+
+    if(tar_points>plat_points)
+
+        N=tar_points;
+    else
+        N=plat_points;
 
 	// target
 	double *tar_lati_intp = new double[N];
@@ -314,36 +367,71 @@ bool gps_rcs_files_read(QString gpsfile,
 
 
     double *intp_x_tar = new double[N];
-    double *intp_x_plane = new double[N];
+
+    int x_temp_num=0;
+    if(tar_points>plat_points)
+        x_temp_num=plat_points;
+    else
+        x_temp_num=tar_points;
 	
     for (long k = 0; k < N; k++)
-       intp_x_tar[k] = tar_points*(double)k / N;
+    {
+        intp_x_tar[k] = (x_temp_num-1)*(double)k / (N-1);
+        tar_sec_intp[k]=starttime_sec+k*(endtime_sec-starttime_sec)/(N-1);
+    }
 
-    for (long k = 0; k < N; k++)
-        intp_x_plane[k] = plat_gps_point*(double)k / N;
+
 
 	// interp for target gps data
-	LinearIntp(intp_x_tar, tar_lati_intp, rcs_points, tar_lati_raw + tar_loc_sta, tar_points);
-	LinearIntp(intp_x_tar, tar_logn_intp, rcs_points, tar_logn_raw + tar_loc_sta, tar_points);
-	LinearIntp(intp_x_tar, tar_h_intp, rcs_points, tar_h_raw + tar_loc_sta, tar_points);
-	LinearIntp(intp_x_tar, tar_hx_intp, rcs_points, tar_hx_raw + tar_loc_sta, tar_points);
-	LinearIntp(intp_x_tar, tar_sec_intp, rcs_points, tar_sec_raw + tar_loc_sta, tar_points);
 
-	// interp for plane gps data
-	LinearIntp(intp_x_plane, plane_lati_intp, rcs_points, plane_lati_raw, plat_gps_point);
-	LinearIntp(intp_x_plane, plane_logn_intp, rcs_points, plane_logn_raw, plat_gps_point);
-	LinearIntp(intp_x_plane, plane_h_intp, rcs_points, plane_h_raw, plat_gps_point);
+    if(tar_points>plat_points)
+    {
+
+        for (long k = 0; k < N; k++)
+        {
+            tar_lati_intp[k] =*(tar_lati_raw+k+tar_loc_sta);
+             tar_logn_intp[k]=*(tar_logn_raw+k+tar_loc_sta);
+              tar_h_intp[k]=*(tar_h_raw+k+tar_loc_sta);
+              tar_hx_intp[k]=*(tar_hx_raw+k+tar_loc_sta);
+        }
+
+        // interp for plane gps data
+        LinearIntp(intp_x_tar, plane_lati_intp, N, plane_lati_raw+plat_loc_sta, plat_points);
+        LinearIntp(intp_x_tar, plane_logn_intp, N, plane_logn_raw+plat_loc_sta, plat_points);
+        LinearIntp(intp_x_tar, plane_h_intp, N, plane_h_raw+plat_loc_sta, plat_points);
+
+    }
+    else
+    {
+        LinearIntp(intp_x_tar, tar_lati_intp, N, tar_lati_raw + tar_loc_sta, tar_points);
+        LinearIntp(intp_x_tar, tar_logn_intp, N, tar_logn_raw + tar_loc_sta, tar_points);
+        LinearIntp(intp_x_tar, tar_h_intp, N, tar_h_raw + tar_loc_sta, tar_points);
+        LinearIntp(intp_x_tar, tar_hx_intp, N, tar_hx_raw + tar_loc_sta, tar_points);
+        for (long k = 0; k < N; k++)
+        {
+            plane_lati_intp[k] =*(plane_lati_raw+k+plat_loc_sta);
+             plane_logn_intp[k]=*(plane_logn_raw+k+plat_loc_sta);
+              plane_h_intp[k]=*(plane_h_raw+k+plat_loc_sta);
+
+        }
+
+        // interp for plane gps data
+
+    }
+
 
 	// 计算方位角并保存；
-	double *azAngle = new double[rcs_points];
-	double *ptAngle = new double[rcs_points];
-	double *sltRange = new double[rcs_points];
-	memset(azAngle, 0, sizeof(double)*rcs_points);
-	memset(ptAngle, 0, sizeof(double)*rcs_points);
-	memset(sltRange, 0, sizeof(double)*rcs_points);
+    double *azAngle = new double[N];
+    double *ptAngle = new double[N];
+    double *sltRange = new double[N];
+    memset(azAngle, 0, sizeof(double)*N);
+    memset(ptAngle, 0, sizeof(double)*N);
+    memset(sltRange, 0, sizeof(double)*N);
 
     int hour_temp, min_temp,RCS_index;
-	for (long k = 0; k < rcs_points; k++)
+    int index_find_angle90=0;
+    double max_dB=-99999.0;
+    for (long k = 0; k < N; k++)
 	{
 		double X_lati = (plane_lati_intp[k] - tar_lati_intp[k])*111693.1;  // 纬度信息地面投影
 		double Y_logn = (plane_logn_intp[k] - tar_logn_intp[k])*111693.1*cos(plane_lati_intp[k] * pi / 180.0); //经度信息地面投影
@@ -360,9 +448,19 @@ bool gps_rcs_files_read(QString gpsfile,
 		while (azAngle[k] < 0)	{ azAngle[k] += 360; }
 		while (azAngle[k] > 360) { azAngle[k] -= 360; } // 添加2017/3/25;
 
+
+
 		dataunit_temp.angle = azAngle[k];
         RCS_index=FindAngleIndex(RCS_raw_angle,dataunit_temp.angle ,rcs_points);
         dataunit_temp.RCS_dB = RCS_raw[RCS_index];
+        if(dataunit_temp.RCS_dB>max_dB)
+        {
+            index_find_angle90=k;
+            max_dB=dataunit_temp.RCS_dB;
+
+        }
+
+
 		dataunit_temp.plane_lon = plane_logn_intp[k];
 		dataunit_temp.plane_lat = plane_lati_intp[k];
 		dataunit_temp.plane_Height = plane_h_intp[k];
@@ -388,6 +486,17 @@ bool gps_rcs_files_read(QString gpsfile,
 
 
 
+
+           pos90.index=index_find_angle90;
+            pos90.plane_lat=plane_lati_intp[index_find_angle90];
+            pos90.plane_lon= plane_logn_intp[index_find_angle90];
+            pos90.plane_Height=plane_h_intp[index_find_angle90];
+            pos90.target_lat=tar_lati_intp[index_find_angle90];
+            pos90.target_lon=tar_logn_intp[index_find_angle90];
+            pos90.target_Height= tar_h_intp[index_find_angle90];
+            pos90.dTime=tar_sec_intp[index_find_angle90];
+
+
 	delete[] tar_lati_intp; tar_lati_intp = NULL;
 	delete[] tar_logn_intp; tar_logn_intp = NULL;
 	delete[] tar_hx_intp;	 tar_hx_intp = NULL;
@@ -402,7 +511,7 @@ bool gps_rcs_files_read(QString gpsfile,
 	delete[] plane_logn_intp; plane_logn_intp = NULL;
 
 	delete[] intp_x_tar; intp_x_tar = NULL;
-	delete[] intp_x_plane; intp_x_plane = NULL;
+
 
 	delete[] azAngle; azAngle = NULL;
 	delete[] ptAngle; ptAngle = NULL;
@@ -411,7 +520,7 @@ bool gps_rcs_files_read(QString gpsfile,
 	delete[] tar_h_intp;	   tar_h_intp = NULL;
 	delete[] sltRange;        sltRange = NULL;
 
-	return true;
+    return true;
 }
 
 
@@ -423,10 +532,9 @@ bool gps_rcs_files_read_single(QString gpsfile,
 	double tar_lon,
 	double tar_lat,
 	double tar_h,
-	double tar_hx,
 	QString rcsfile,
 	QVector<dataunit> &vec_data, 
-	cTime& startTime)
+    cTime& startTime,pos_90angle &pos90)
 	{
 		
 		
@@ -582,80 +690,64 @@ bool gps_rcs_files_read_single(QString gpsfile,
 
 	// all above is ok
 	// 插值tar_points,plat_gps_point,rcs_points个点数
-	long N = rcs_points;
+    long N = plat_gps_point;
 	
-    if ((plat_gps_point > N)) N = plat_gps_point;
 
 	// target
-	double *tar_lati_intp = new double[N];
-	double *tar_logn_intp = new double[N];
-	double *tar_h_intp = new double[N];
-	double *tar_hx_intp = new double[N];
-
-	
-	for (int i = 0; i < N; i ++)
-	{
-		tar_lati_intp[i] = tar_lat;
-		tar_logn_intp[i] = tar_lon;
-		tar_h_intp[i] = tar_h;
-		tar_hx_intp[i] = tar_hx;
-	}
-	
-// 	memset(tar_lati_intp, tar_lat, sizeof(double)*N);
-// 	memset(tar_logn_intp, tar_lon, sizeof(double)*N);
-// 	memset(tar_h_intp, tar_h, sizeof(double)*N);
-// 	memset(tar_hx_intp,tar_hx, sizeof(double)*N);
-	
+    //double *tar_lati_intp = new double[N];
+    //double *tar_logn_intp = new double[N];
+    //double *tar_h_intp = new double[N];
+    //double *tar_hx_intp = new double[N];
 
 	// plane
 	double *plane_lati_intp = new double[N];
 	double *plane_logn_intp = new double[N];
 	double *plane_h_intp = new double[N];
+    double *Plane_time_sec_intp=new double[N];
 	
-	memset(plane_lati_intp, 0, sizeof(double)*N);
-	memset(plane_logn_intp, 0, sizeof(double)*N);
-	memset(plane_h_intp, 0, sizeof(double)*N);
+for(int k=0;k<N;k++)
+{
+
+
+    plane_lati_intp[k]=plane_lati_raw[k];
+    plane_logn_intp[k]=plane_logn_raw[k];
+    plane_h_intp[k]=plane_h_raw[k];
+    Plane_time_sec_intp[k]=plat_sta_sec+(plat_end_sec-plat_sta_sec)*k/(N-1);
+}
 
 	
 	
-	
-    double *intp_x_plane = new double[N];
 
-    for (long k = 0; k < N; k++)
-        intp_x_plane[k] = plat_gps_point*(double)k / N;
 
-	// interp for target gps data
-	
 
-	// interp for plane gps data
-	LinearIntp(intp_x_plane, plane_lati_intp, rcs_points, plane_lati_raw, plat_gps_point);
-	LinearIntp(intp_x_plane, plane_logn_intp, rcs_points, plane_logn_raw, plat_gps_point);
-	LinearIntp(intp_x_plane, plane_h_intp, rcs_points, plane_h_raw, plat_gps_point);
 
 	// 计算方位角并保存；
-	double *azAngle = new double[rcs_points];
-	double *ptAngle = new double[rcs_points];
-	double *sltRange = new double[rcs_points];
-	memset(azAngle, 0, sizeof(double)*rcs_points);
-	memset(ptAngle, 0, sizeof(double)*rcs_points);
-	memset(sltRange, 0, sizeof(double)*rcs_points);	
-   double delte_T=(plat_end_sec-plat_sta_sec)/(double)(rcs_points-1);
+    double *azAngle = new double[N];
+    double *ptAngle = new double[N];
+    double *sltRange = new double[N];
+    memset(azAngle, 0, sizeof(double)*N);
+    memset(ptAngle, 0, sizeof(double)*N);
+    memset(sltRange, 0, sizeof(double)*N);
+
 
 	int hour_temp, min_temp;
     int RCS_index;
-	for (long k = 0; k < rcs_points; k++)
+    double max_dB=-9999.0;
+    int index_find_angle90=0;
+    for (long k = 0; k < N; k++)
 	{
-		double X_lati = (plane_lati_intp[k] - tar_lati_intp[k])*111693.1;  // 纬度信息地面投影
-		double Y_logn = (plane_logn_intp[k] - tar_logn_intp[k])*111693.1*cos(plane_lati_intp[k] * pi / 180.0); //经度信息地面投影
 
-		double high = (plane_h_intp[k] - tar_h_intp[k]); // 载机到地面的高度
+        double X_lati = (plane_lati_intp[k] - tar_lat)*111693.1;  // 纬度信息地面投影
+        double Y_logn = (plane_logn_intp[k] - tar_lon)*111693.1*cos(plane_lati_intp[k] * pi / 180.0); //经度信息地面投影
+
+        double high = (plane_h_intp[k] - tar_h); // 载机到地面的高度
 		sltRange[k] = sqrt(high*high + X_lati*X_lati + Y_logn*Y_logn); // 载机到目标的斜距
 
 		ptAngle[k] = 90 - acos(high / sltRange[k]) * 180 / pi; // 与水平面的夹角为俯仰角;
 		azAngle[k] = atan2(Y_logn, X_lati) * 180 / pi;           // 与正北方向的夹角为定义的方位角
 		if (azAngle[k] < 0) azAngle[k] += 360;
 
-		azAngle[k] -= tar_hx_intp[k];  // 计算相对于船的航向的夹角；
+        //azAngle[k] -= tar_hx_intp[k];  // 计算相对于船的航向的夹角；
 
 		while (azAngle[k] < 0)	{ azAngle[k] += 360; }
 		while (azAngle[k] > 360) { azAngle[k] -= 360; } // 添加2017/3/25;
@@ -663,25 +755,42 @@ bool gps_rcs_files_read_single(QString gpsfile,
 		dataunit_temp.angle = azAngle[k];
         RCS_index=FindAngleIndex(RCS_angle,dataunit_temp.angle ,rcs_points);
         dataunit_temp.RCS_dB = RCS_raw[RCS_index];
-		dataunit_temp.RCS_dB = RCS_raw[k];
+
+
+
+
 		dataunit_temp.plane_lon = plane_logn_intp[k];
 		dataunit_temp.plane_lat = plane_lati_intp[k];
 		dataunit_temp.plane_Height = plane_h_intp[k];
-		dataunit_temp.target_lon = tar_logn_intp[k];
-		dataunit_temp.target_lat = tar_lati_intp[k];
-		dataunit_temp.target_Height = tar_h_intp[k];
+        dataunit_temp.target_lon = tar_lon;
+        dataunit_temp.target_lat = tar_lat;
+        dataunit_temp.target_Height = tar_h;
 
 
-		dataunit_temp.dTime = delte_T*k+plat_sta_sec;
+        dataunit_temp.dTime = Plane_time_sec_intp[k];
+
+        if(dataunit_temp.RCS_dB>max_dB)
+        {
+            index_find_angle90=k;
+            max_dB=dataunit_temp.RCS_dB;
+
+        }
+
 
 		vec_data.push_back(dataunit_temp);
 	}
 
 
 
-	delete[] tar_lati_intp; tar_lati_intp = NULL;
-	delete[] tar_logn_intp; tar_logn_intp = NULL;
-	delete[] tar_hx_intp;	 tar_hx_intp = NULL;
+    pos90.index=index_find_angle90;
+     pos90.plane_lat=plane_lati_intp[index_find_angle90];
+     pos90.plane_lon= plane_logn_intp[index_find_angle90];
+     pos90.plane_Height=plane_h_intp[index_find_angle90];
+     pos90.target_lat=tar_lat;
+     pos90.target_lon=tar_lon;
+     pos90.target_Height= tar_h;
+     pos90.dTime=Plane_time_sec_intp[index_find_angle90];
+
 
 
 	delete[] plane_lati_raw; plane_lati_raw = NULL;
@@ -693,72 +802,20 @@ bool gps_rcs_files_read_single(QString gpsfile,
 
 	delete[] plane_lati_intp; plane_lati_intp = NULL;
 	delete[] plane_logn_intp; plane_logn_intp = NULL;
-
-	delete[] intp_x_plane; intp_x_plane = NULL;
+    delete [] Plane_time_sec_intp;Plane_time_sec_intp=NULL;
 
 	delete[] azAngle; azAngle = NULL;
 	delete[] ptAngle; ptAngle = NULL;
 
 	delete[] plane_h_intp;    plane_h_intp = NULL;
-	delete[] tar_h_intp;	   tar_h_intp = NULL;
+
 	delete[] sltRange;        sltRange = NULL;
 
 	return true;
-	}
-
-	bool gps_rcs_files_read_Ex(QString gpsfile,
-		QString targpsfile,
-		QString rcsfile,
-		QVector<dataunit> &vec_data,
-		cTime& startTime)
-	{
-		//判断目标GPS是不是只有一帧
-
-		double dLon, dLat, dH, dHx;
-		long tar_gps_point = 0;
-
-		std::ifstream fin1(targpsfile.toLocal8Bit().data(), std::ios::in);
-
-		char line[1024];
-		while (fin1.getline(line, sizeof(line)))
-		{
-			QString cmd = QString("%1").arg(line);
-			if (cmd.isEmpty())
-				continue;
-
-			QStringList list;
-			list = cmd.split(QRegExp("\\s+"));
-
-			if (list.size() < 7)
-			{
-				return false;
-			}
-
-			if (tar_gps_point >= MAX_RCS_POINTS)
-				break;
-
-			if (0 == tar_gps_point)
-			{
-				dLon = list.at(1).toDouble();
-				dLat = list.at(2).toDouble();
-				dH = list.at(3).toDouble();
-				dHx = list.at(6).toDouble();
-			}
-
-			tar_gps_point++;
-		}
-		fin1.close();
-
-		if (tar_gps_point == 1)
-		{
-			if (!gps_rcs_files_read_single(gpsfile, dLon, dLat, dH, dHx, rcsfile, vec_data, startTime))
-				return false;
-		}
-		else
-		{
-			if (!gps_rcs_files_read(gpsfile, targpsfile, rcsfile, vec_data, startTime))
-				return false;
-		}
-
-		return true;
+		
+		
+		
+		
+		
+		
 	}

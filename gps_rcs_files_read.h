@@ -39,6 +39,20 @@ typedef  struct dataunit
 }detaunit;
 
 
+typedef struct pos_90angle
+{
+    double plane_lat;
+    double plane_lon;
+    double plane_Height;
+    double target_lat;
+    double target_lon;
+    double target_Height;
+    double dTime;
+    int    index;
+
+}pos_90angle;
+
+
 int FindAngleIndex(double *Anlge,double angle,int Npoints);
 void LinearIntp(double *xout, double *yout, __int64 xn, double *yin, __int64 yn);
 
@@ -46,21 +60,17 @@ bool gps_rcs_files_read(QString gpsfile,
 	QString targpsfile,
 	QString rcsfile,
 	QVector<dataunit> &vec_data, 
-	cTime& startTime);
+    cTime& startTime,
+    pos_90angle &pos90);
+
 
     bool gps_rcs_files_read_single(QString gpsfile,
 	double tar_lon,
 	double tar_lat,
 	double tar_h,
-	double tar_hx,
 	QString rcsfile,
 	QVector<dataunit> &vec_data, 
-	cTime& startTime);
-
-	bool gps_rcs_files_read_Ex(QString gpsfile,
-		QString targpsfile,
-		QString rcsfile,
-		QVector<dataunit> &vec_data,
-		cTime& startTime);
+    cTime& startTime,
+    pos_90angle &pos90);
 
 #endif // GPS_RCS_FILES_READ_H
