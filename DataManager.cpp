@@ -43,6 +43,64 @@ osgOcean::FFTOceanSurface* g_surface = nullptr;
 
 void SetAutoManipulator(double dLeft, double dTop, double dRight, double dBottom, double dH);
 
+bool gps_rcs_files_read_Ex(QString gpsfile,
+	QString targpsfile,
+	QString rcsfile,
+	QVector<dataunit> &vec_data,
+	cTime& startTime,
+    pos_90angle &pos90)
+{
+	//判断目标GPS是不是只有一帧
+
+	double dLon, dLat, dH;
+	long tar_gps_point = 0;
+
+	std::ifstream fin1(targpsfile.toLocal8Bit().data(), std::ios::in);
+
+	char line[1024];
+	while (fin1.getline(line, sizeof(line)))
+	{
+		QString cmd = QString("%1").arg(line);
+		if (cmd.isEmpty())
+			continue;
+
+		QStringList list;
+		list = cmd.split(QRegExp("\\s+"));
+
+		if (list.size() < 7)
+		{
+			return false;
+		}
+
+		if (tar_gps_point >= MAX_RCS_POINTS)
+			break;
+
+		if (0 == tar_gps_point)
+		{
+			dLon = list.at(1).toDouble();
+			dLat = list.at(2).toDouble();
+			dH = list.at(3).toDouble();
+			//dHx = list.at(6).toDouble();
+		}
+
+		tar_gps_point++;
+	}
+	fin1.close();
+
+	if (tar_gps_point == 1)
+	{
+		if (!gps_rcs_files_read_single(gpsfile, dLon, dLat, dH, rcsfile, vec_data, startTime, pos90))
+			return false;
+	}
+	else
+	{
+		if (!gps_rcs_files_read(gpsfile, targpsfile, rcsfile, vec_data, startTime, pos90))
+			return false;
+	}
+
+	return true;
+}
+
 void AddOcean(double dLon, double dLat, osg::Group* pParent)
 {
 	osgOcean::ShaderManager::instance().enableShaders(true);
@@ -346,10 +404,11 @@ void DataManager::GetPlanePathEnv(double& dx1, double& dy1, double& dx2, double&
 
 bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QString rcsfile, QString video)
 {
+	pos_90angle pos90;
 	cTime timeStart;
 	QVector<dataunit> vecData;
 
-	if (!gps_rcs_files_read_Ex(gpsfile, targpsfile, rcsfile, vecData, timeStart))
+	if (!gps_rcs_files_read_Ex(gpsfile, targpsfile, rcsfile, vecData, timeStart, pos90))
 		return false;
 
 	int nCount = vecData.size();

@@ -60,6 +60,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5OpenGLd.lib;opengl32.lib;glu32.lib;Qt5Widgetsd.lib;osgOceanD.lib;Qt5Sqld.lib;qtnribbond4.lib;..\..\lib\osgViewerd.lib;..\..\lib\osgTextd.lib;..\..\lib\osgGAd.lib;..\..\lib\osgDBd.lib;..\..\lib\osgSimd.lib;..\..\lib\osgQtd.lib;..\..\lib\osgUtild.lib;..\..\lib\osgd.lib;..\..\lib\OpenThreadsd.lib;qwtd.lib;Qt5MultiMediaWidgetsd.lib;Qt5MultiMediad.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
+      <AdditionalOptions>/FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -76,6 +77,7 @@
       <AdditionalLibraryDirectories>C:\Qt\Qt5.6.0\5.6\msvc2013\lib;D:\OpenSceneGraph3.4.0\osgocean\lib\Release;D:\OpenSceneGraph3.4.0\QtitanRibbon\lib\win32;D:\OpenSceneGraph3.4.0\qwt\lib;D:\MyProject\gdal2.2\220\bld\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5OpenGL.lib;Qt5MultiMediaWidgets.lib;Qt5MultiMedia.lib;opengl32.lib;glu32.lib;Qt5Widgets.lib;osgOcean.lib;Qt5Sql.lib;qtnribbon4.lib;..\..\lib\osgViewer.lib;..\..\lib\osgText.lib;..\..\lib\osgGA.lib;..\..\lib\osgDB.lib;..\..\lib\osgSim.lib;..\..\lib\osgQt.lib;..\..\lib\osgUtil.lib;..\..\lib\osg.lib;..\..\lib\OpenThreads.lib;qwt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

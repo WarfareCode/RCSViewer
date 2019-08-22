@@ -32,7 +32,7 @@ bool FindFile(const QString &path, QStringList& listClassFile)
 	do
 	{
 		QFileInfo fileInfo = list.at(i);
-		if (fileInfo.fileName() == "." | fileInfo.fileName() == "..")
+		if (fileInfo.fileName() == "." || fileInfo.fileName() == "..")
 		{
 			++i;
 			continue;
@@ -151,6 +151,8 @@ void SearchGlobalDlg::slotShow3D()
 	DisplayFileSelectDlg dlg(listFileFieldName, listFilePath);
 	if (dlg.exec())
 	{
+		accept();
+
 		Show3DMainWindow();
 
 		QString strPlaneGPS, strTargetGPS, strRCS, strVideo;
