@@ -10,9 +10,13 @@
 #include <qwt_scale_div.h>
 #include <qwt_scale_map.h>
 #include <qwt_plot_directpainter.h>
+#include <qwt_plot_picker.h>
+#include <qwt_picker_machine.h>
 #include <qwt_painter.h>
+#include <qwt_text.h>
 #include "qwt_symbol.h"
 #include <qcoreevent.h>
+#include "PlotSettings.h"
 
 class Canvas : public QwtPlotCanvas
 {
@@ -86,16 +90,23 @@ d_timerId(-1)
 {
 	d_directPainter = new QwtPlotDirectPainter();
 
+	PlotSettings* pPlotSettings = PlotSettings::Instance();
+
 	setAutoReplot(false);
 	setCanvas(new Canvas());
 
 	plotLayout()->setAlignCanvasToScales(true);
 
-	setAxisTitle(QwtPlot::xBottom, QString::fromLocal8Bit("度"));
-	setAxisTitle(QwtPlot::yLeft, QString::fromLocal8Bit("db"));
+	int nHMin, nHMax, nVMin, nVMax;
+	PlotSettings* pSettings = PlotSettings::Instance();
+	pSettings->getHMinMax(nHMin, nHMax);
+	pSettings->getVMinMax(nVMin, nVMax);
 
-	setAxisScale(QwtPlot::xBottom, d_interval.minValue(), d_interval.maxValue());
-	setAxisScale(QwtPlot::yLeft, 20, 60);
+	setAxisTitle(QwtPlot::xBottom, pPlotSettings->hLabel());
+	setAxisTitle(QwtPlot::yLeft, pPlotSettings->vLabel());
+
+	setAxisScale(QwtPlot::xBottom, nHMin, nHMax);
+	setAxisScale(QwtPlot::yLeft, nVMin, nVMax);
 
 	QwtPlotGrid *grid = new QwtPlotGrid();
 	grid->setPen(Qt::gray, 0.0, Qt::DotLine);
@@ -105,11 +116,11 @@ d_timerId(-1)
 	grid->enableYMin(false);
 	grid->attach(this);
 
-	d_origin = new QwtPlotMarker();
-	d_origin->setLineStyle(QwtPlotMarker::Cross);
-	d_origin->setValue(d_interval.minValue() + d_interval.width() / 2.0, 30/*0.0*/);
-	d_origin->setLinePen(Qt::gray, 0.0, Qt::DashLine);
-	d_origin->attach(this);
+// 	d_origin = new QwtPlotMarker();
+// 	d_origin->setLineStyle(QwtPlotMarker::Cross);
+// 	d_origin->setValue(d_interval.minValue() + d_interval.width() / 2.0, 30/*0.0*/);
+// 	d_origin->setLinePen(Qt::gray, 0.0, Qt::DashLine);
+// 	d_origin->attach(this);
 
 	d_curve = new QwtPlotCurve();
 	d_curve->setStyle(QwtPlotCurve::Lines);
@@ -124,6 +135,24 @@ d_timerId(-1)
 
 	d_curve->setData(new CurveData());
 	d_curve->attach(this);
+
+	if (0)
+	{
+		auto picker = new QwtPlotPicker(canvas());
+		picker->setStateMachine(new QwtPickerDragPointMachine());
+		picker->setRubberBandPen(QColor(Qt::darkMagenta));
+		picker->setRubberBand(QwtPicker::CrossRubberBand);
+		picker->setTrackerMode(QwtPicker::AlwaysOn);//被激活时候显示
+		picker->setTrackerPen(QColor(Qt::black));//显示实时的坐标
+
+		//QwtPlotPicker* picker = new QwtPlotPicker(QwtPlot::xBottom, 10,
+		//	QwtPlotPicker::CrossRubberBand, QwtPicker::AlwaysOn,
+		//	canvas());
+		//picker->setStateMachine(new QwtPickerDragPointMachine());
+		//picker->setRubberBandPen(QColor(Qt::darkMagenta));
+		//picker->setRubberBand(QwtPicker::CrossRubberBand);
+		//picker->setTrackerPen(QColor(Qt::green));
+	}
 }
 
 Plot::~Plot()

@@ -338,6 +338,9 @@
     <ClCompile Include="GeneratedFiles\Release\moc_SearchGlobalDlg.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="PlotSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.ui">
@@ -617,6 +620,9 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_SearchGlobalDlg.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PlotSettings.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

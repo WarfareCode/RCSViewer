@@ -12,9 +12,17 @@ public:
 	PlotRangeDlg(QWidget *parent = 0);
 	~PlotRangeDlg();
 
-	int GetMin();
+	int GetHMin();
 
-	int GetMax();
+	int GetHMax();
+
+	int GetVMin();
+
+	int GetVMax();
+
+	QString hLabel();
+
+	QString vLabel();
 
 private:
 	Ui::PlotRangeDlg ui;

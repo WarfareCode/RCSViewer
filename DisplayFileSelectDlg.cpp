@@ -5,6 +5,10 @@ DisplayFileSelectDlg::DisplayFileSelectDlg(const QStringList& listFileTypeName, 
 {
 	ui.setupUi(this);
 
+	setWindowTitle(QString::fromLocal8Bit("选择展示数据"));
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+	setWindowIcon(QIcon());
+
 	m_listFileTypeName = listFileTypeName;
 	m_listFilePath = listFilePath;
 

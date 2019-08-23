@@ -48,7 +48,7 @@ bool gps_rcs_files_read_Ex(QString gpsfile,
 	QString rcsfile,
 	QVector<dataunit> &vec_data,
 	cTime& startTime,
-    pos_90angle &pos90)
+	double &angle)
 {
 	//判断目标GPS是不是只有一帧
 
@@ -89,12 +89,12 @@ bool gps_rcs_files_read_Ex(QString gpsfile,
 
 	if (tar_gps_point == 1)
 	{
-		if (!gps_rcs_files_read_single(gpsfile, dLon, dLat, dH, rcsfile, vec_data, startTime, pos90))
+		if (!gps_rcs_files_read_single(gpsfile, dLon, dLat, dH, rcsfile, vec_data, startTime, angle))
 			return false;
 	}
 	else
 	{
-		if (!gps_rcs_files_read(gpsfile, targpsfile, rcsfile, vec_data, startTime, pos90))
+		if (!gps_rcs_files_read(gpsfile, targpsfile, rcsfile, vec_data, startTime, angle))
 			return false;
 	}
 
@@ -404,11 +404,11 @@ void DataManager::GetPlanePathEnv(double& dx1, double& dy1, double& dx2, double&
 
 bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QString rcsfile, QString video)
 {
-	pos_90angle pos90;
+	double angle = 0.0;
 	cTime timeStart;
 	QVector<dataunit> vecData;
 
-	if (!gps_rcs_files_read_Ex(gpsfile, targpsfile, rcsfile, vecData, timeStart, pos90))
+	if (!gps_rcs_files_read_Ex(gpsfile, targpsfile, rcsfile, vecData, timeStart, angle))
 		return false;
 
 	int nCount = vecData.size();
@@ -512,8 +512,6 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 		m_pTargetAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPathTarget));
 	}
 
-
-
 	osg::Vec3d scale(m_dScale, m_dScale, m_dScale);
 	double dTime = listData[0].dTime;
 	int nSize = listData.size();
@@ -549,8 +547,6 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 
 		if (i != 0 && i < nSize - 1)
 		{
-			osg::Vec3 vec0(1.0, 0.0, 0.0);
-
 			double dLon = listData[i + 1].target_lon - listData[i - 1].target_lon;
 			double dLat = listData[i + 1].target_lat - listData[i - 1].target_lat;
 
@@ -558,15 +554,14 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 			{
 				continue;
 			}
-
-			osg::Vec3 vec1(dLon, dLat, 0.0);
 		}
 
+		osg::Vec3 vec0(0.0, 0.0, 1.0);
+		quat.makeRotate(osg::inDegrees(angle + 90.0), vec0);
 		animationPathTarget->insert(listData[i].dTime - dTime, osg::AnimationPath::ControlPoint(position, quat, scaleTarget));
 	}
 
 	listData.clear();
-
 	SignalData::instance().Clear();
 
 	//加载曲线显示
@@ -687,6 +682,9 @@ void DataManager::LoadTerrain()
 		pNode->setStateSet(ss);
 		pTerrainGroup->addChild(pNode);
 		AddOcean(122.730963656668, 29.829958362075, pTerrainGroup);
+
+		//舟山海域比较大，再加一个
+		AddOcean(122.730963656668, 28.88, pTerrainGroup);
 
 		//pNode = osgDB::readNodeFile("D:/ive_google/qinhuangdao16.ive");
 		pNode = osgDB::readNodeFile(Path("qinhuangdao16.ive"));

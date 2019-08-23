@@ -61,7 +61,7 @@ bool gps_rcs_files_read(QString gpsfile,
 	QString rcsfile,
 	QVector<dataunit> &vec_data, 
     cTime& startTime,
-    pos_90angle &pos90);
+    double &angle);
 
 
     bool gps_rcs_files_read_single(QString gpsfile,
@@ -71,6 +71,6 @@ bool gps_rcs_files_read(QString gpsfile,
 	QString rcsfile,
 	QVector<dataunit> &vec_data, 
     cTime& startTime,
-    pos_90angle &pos90);
+    double &angle);
 
 #endif // GPS_RCS_FILES_READ_H

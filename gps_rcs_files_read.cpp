@@ -57,7 +57,7 @@ bool  gps_rcs_files_read(QString gpsfile,
 	QString rcsfile,
 	QVector<dataunit> &vec_data,
     cTime& startTime,
-    pos_90angle &pos90)
+   double &  target_amuzh_angle)
 {
 	if (vec_data.size() > 0)
 	{
@@ -306,6 +306,9 @@ bool  gps_rcs_files_read(QString gpsfile,
 	// 读取RCS文件，获取总点数
 	std::ifstream fin2(rcsfile.toLocal8Bit().data(), std::ios::in);
 	long rcs_points = 0;
+
+    double RCS_max=-9999.0;
+    double RCS_max_angle=0;
 	while (fin2.getline(line, sizeof(line))) 
 	{
 		QString cmd = QString("%1").arg(line);
@@ -315,6 +318,18 @@ bool  gps_rcs_files_read(QString gpsfile,
         RCS_raw[rcs_points] = list.at(1).toDouble();
 
         RCS_raw_angle[rcs_points]=list.at(0).toDouble();
+
+
+        if(RCS_max<RCS_raw[rcs_points])
+        {
+            RCS_max=RCS_raw[rcs_points];
+            RCS_max_angle=RCS_raw_angle[rcs_points];
+        }
+
+
+
+
+
 		if (rcs_points >= MAX_RCS_POINTS) break;
 
 		rcs_points++;
@@ -428,9 +443,8 @@ bool  gps_rcs_files_read(QString gpsfile,
     memset(ptAngle, 0, sizeof(double)*N);
     memset(sltRange, 0, sizeof(double)*N);
 
-    int hour_temp, min_temp,RCS_index;
-    int index_find_angle90=0;
-    double max_dB=-99999.0;
+    int RCS_index;
+
     for (long k = 0; k < N; k++)
 	{
 		double X_lati = (plane_lati_intp[k] - tar_lati_intp[k])*111693.1;  // 纬度信息地面投影
@@ -443,7 +457,7 @@ bool  gps_rcs_files_read(QString gpsfile,
 		azAngle[k] = atan2(Y_logn, X_lati) * 180 / pi;           // 与正北方向的夹角为定义的方位角
 		if (azAngle[k] < 0) azAngle[k] += 360;
 
-		azAngle[k] -= tar_hx_intp[k];  // 计算相对于船的航向的夹角；
+        //azAngle[k] -= tar_hx_intp[k];  // 计算相对于船的航向的夹角；
 
 		while (azAngle[k] < 0)	{ azAngle[k] += 360; }
 		while (azAngle[k] > 360) { azAngle[k] -= 360; } // 添加2017/3/25;
@@ -453,12 +467,6 @@ bool  gps_rcs_files_read(QString gpsfile,
 		dataunit_temp.angle = azAngle[k];
         RCS_index=FindAngleIndex(RCS_raw_angle,dataunit_temp.angle ,rcs_points);
         dataunit_temp.RCS_dB = RCS_raw[RCS_index];
-        if(dataunit_temp.RCS_dB>max_dB)
-        {
-            index_find_angle90=k;
-            max_dB=dataunit_temp.RCS_dB;
-
-        }
 
 
 		dataunit_temp.plane_lon = plane_logn_intp[k];
@@ -485,16 +493,12 @@ bool  gps_rcs_files_read(QString gpsfile,
 	}
 
 
+   target_amuzh_angle=90-RCS_max_angle;
+   while(target_amuzh_angle<0)
+       target_amuzh_angle=target_amuzh_angle+360;
+   while(target_amuzh_angle>360)
+       target_amuzh_angle=target_amuzh_angle-360;
 
-
-           pos90.index=index_find_angle90;
-            pos90.plane_lat=plane_lati_intp[index_find_angle90];
-            pos90.plane_lon= plane_logn_intp[index_find_angle90];
-            pos90.plane_Height=plane_h_intp[index_find_angle90];
-            pos90.target_lat=tar_lati_intp[index_find_angle90];
-            pos90.target_lon=tar_logn_intp[index_find_angle90];
-            pos90.target_Height= tar_h_intp[index_find_angle90];
-            pos90.dTime=tar_sec_intp[index_find_angle90];
 
 
 	delete[] tar_lati_intp; tar_lati_intp = NULL;
@@ -534,7 +538,7 @@ bool gps_rcs_files_read_single(QString gpsfile,
 	double tar_h,
 	QString rcsfile,
 	QVector<dataunit> &vec_data, 
-    cTime& startTime,pos_90angle &pos90)
+    cTime& startTime,double &target_amuzh_angle)
 	{
 		
 		
@@ -663,6 +667,9 @@ bool gps_rcs_files_read_single(QString gpsfile,
 	// 读取RCS文件，获取总点数
 	std::ifstream fin2(rcsfile.toLocal8Bit().data(), std::ios::in);
 	long rcs_points = 0;
+
+    double RCS_max=-9999.0;
+    double RCS_max_angle=0;
 	while (fin2.getline(line, sizeof(line))) 
 	{
 		QString cmd = QString("%1").arg(line);
@@ -671,6 +678,13 @@ bool gps_rcs_files_read_single(QString gpsfile,
 		list = cmd.split(QRegExp("\\s+"), QString::SkipEmptyParts);
         RCS_raw[rcs_points] = list.at(1).toDouble();
         RCS_angle[rcs_points]=list.at(0).toDouble();
+        if(RCS_raw[rcs_points]>RCS_max)
+        {
+            RCS_max=RCS_raw[rcs_points];
+            RCS_max_angle= RCS_angle[rcs_points];
+
+        }
+
 
 
 
@@ -678,6 +692,10 @@ bool gps_rcs_files_read_single(QString gpsfile,
                 rcs_points++;
 
 	}
+
+
+
+
 
 
 	fin2.close();
@@ -730,10 +748,9 @@ for(int k=0;k<N;k++)
     memset(sltRange, 0, sizeof(double)*N);
 
 
-	int hour_temp, min_temp;
+
     int RCS_index;
-    double max_dB=-9999.0;
-    int index_find_angle90=0;
+
     for (long k = 0; k < N; k++)
 	{
 
@@ -756,41 +773,24 @@ for(int k=0;k<N;k++)
         RCS_index=FindAngleIndex(RCS_angle,dataunit_temp.angle ,rcs_points);
         dataunit_temp.RCS_dB = RCS_raw[RCS_index];
 
-
-
-
 		dataunit_temp.plane_lon = plane_logn_intp[k];
 		dataunit_temp.plane_lat = plane_lati_intp[k];
 		dataunit_temp.plane_Height = plane_h_intp[k];
         dataunit_temp.target_lon = tar_lon;
         dataunit_temp.target_lat = tar_lat;
         dataunit_temp.target_Height = tar_h;
-
-
         dataunit_temp.dTime = Plane_time_sec_intp[k];
-
-        if(dataunit_temp.RCS_dB>max_dB)
-        {
-            index_find_angle90=k;
-            max_dB=dataunit_temp.RCS_dB;
-
-        }
 
 
 		vec_data.push_back(dataunit_temp);
 	}
 
 
-
-    pos90.index=index_find_angle90;
-     pos90.plane_lat=plane_lati_intp[index_find_angle90];
-     pos90.plane_lon= plane_logn_intp[index_find_angle90];
-     pos90.plane_Height=plane_h_intp[index_find_angle90];
-     pos90.target_lat=tar_lat;
-     pos90.target_lon=tar_lon;
-     pos90.target_Height= tar_h;
-     pos90.dTime=Plane_time_sec_intp[index_find_angle90];
-
+    target_amuzh_angle=90-RCS_max_angle;
+    while(target_amuzh_angle<0)
+        target_amuzh_angle=target_amuzh_angle+360;
+    while(target_amuzh_angle>360)
+        target_amuzh_angle=target_amuzh_angle-360;
 
 
 	delete[] plane_lati_raw; plane_lati_raw = NULL;

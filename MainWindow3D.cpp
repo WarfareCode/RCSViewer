@@ -19,6 +19,7 @@
 #include "SetPathDlg.h"
 #include <QtWidgets/QMessageBox>
 #include "PlotRangeDlg.h"
+#include "PlotSettings.h"
 
 extern osgViewer::View* g_pView;
 extern SamplingThread* g_pSampleThread;
@@ -185,10 +186,28 @@ void MainWindow3D::slotSetPlotRange()
 	PlotRangeDlg dlg;
 	if (dlg.exec())
 	{
-		int nMin = dlg.GetMin();
-		int nMax = dlg.GetMax();
+		int nHMin = dlg.GetHMin();
+		int nHMax = dlg.GetHMax();
 
-		m_pPlot->setAxisScale(QwtPlot::yLeft, nMin, nMax);
+		int nVMin = dlg.GetVMin();
+		int nVMax = dlg.GetVMax();
+
+		QString strHLabel = dlg.hLabel();
+		QString strVLabel = dlg.vLabel();
+
+		m_pPlot->setAxisScale(QwtPlot::yLeft, nVMin, nVMax);
+		m_pPlot->setAxisScale(QwtPlot::xBottom, nHMin, nHMax);
+
+		m_pPlot->setAxisTitle(QwtPlot::xBottom, strHLabel);
+		m_pPlot->setAxisTitle(QwtPlot::yLeft, strVLabel);
+
+	 	PlotSettings* pSettings = PlotSettings::Instance();
+
+		pSettings->setHLabel(strHLabel);
+		pSettings->setVLabel(strVLabel);
+		pSettings->setHMinMax(nHMin, nHMax);
+		pSettings->setVMinMax(nVMin, nVMax);
+
 		m_pPlot->replot();
 	}
 }
