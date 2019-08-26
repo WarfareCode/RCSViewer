@@ -2,6 +2,9 @@
 #include "curvedata.h"
 #include "signaldata.h"
 
+#include <QCoreApplication>
+#include <QMouseEvent>
+
 #include <qwt_plot_grid.h>
 #include <qwt_plot_layout.h>
 #include <qwt_plot_canvas.h>
@@ -14,6 +17,8 @@
 #include <qwt_picker_machine.h>
 #include <qwt_painter.h>
 #include <qwt_text.h>
+#include <qwt_plot_panner.h>
+#include <qwt_plot_magnifier.h>
 #include "qwt_symbol.h"
 #include <qcoreevent.h>
 #include "PlotSettings.h"
@@ -82,6 +87,18 @@ private:
 	}
 };
 
+class MyPlotPicker : public QwtPlotPicker
+{
+public:
+
+	explicit MyPlotPicker(QWidget *canvas) : QwtPlotPicker(canvas)
+	{
+
+	}
+
+	~MyPlotPicker(){}
+};
+
 Plot::Plot(QWidget *parent) :
 QwtPlot(parent),
 d_paintedPoints(0),
@@ -136,7 +153,14 @@ d_timerId(-1)
 	d_curve->setData(new CurveData());
 	d_curve->attach(this);
 
-	if (0)
+	// panning with the left mouse button
+	(void)new QwtPlotPanner(canvas());
+
+	// zoom in/out with the wheel
+	QwtPlotMagnifier *magnifier = new QwtPlotMagnifier(canvas());
+	magnifier->setMouseButton(Qt::NoButton);
+
+	if (1)
 	{
 		auto picker = new QwtPlotPicker(canvas());
 		picker->setStateMachine(new QwtPickerDragPointMachine());
@@ -162,8 +186,8 @@ Plot::~Plot()
 
 void Plot::start()
 {
-	d_clock.start();
-	d_timerId = startTimer(10);
+	//d_clock.start();
+	d_timerId = startTimer(100);
 }
 
 void Plot::replot()
@@ -259,7 +283,11 @@ void Plot::timerEvent(QTimerEvent *event)
 {
 	if (event->timerId() == d_timerId)
 	{
-		updateCurve();
+		//ln_debug 20190826 例子代码写的是updateCurve，但是加入QwtPlotPicker后会有残留
+		// 改为replot。速度应该是降低了，但是没有残留。
+		//updateCurve();
+		replot();
+
 
 // 		const double elapsed = d_clock.elapsed() / 1000.0;
 // 		if (elapsed > d_interval.maxValue())
