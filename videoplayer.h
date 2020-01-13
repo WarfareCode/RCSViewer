@@ -63,6 +63,8 @@ public slots:
     void openFile();
     void play();
 
+	void setPause(bool bPause);
+
 	void setFileAndPlay(QString strFile);
 
 private slots:

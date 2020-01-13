@@ -13,6 +13,7 @@ OrientationCallback::OrientationCallback()
 	m_pArray = new osg::Vec3Array();
 
 	m_nState = 0;
+	m_bPause = false;
 }
 
 OrientationCallback::~OrientationCallback()
@@ -20,9 +21,14 @@ OrientationCallback::~OrientationCallback()
 
 }
 
+void OrientationCallback::setPause(bool bPause)
+{
+	m_bPause = bPause;
+}
+
 void OrientationCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
 {
-	if (nv->getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR)
+	if (!m_bPause && nv->getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR)
 	{
 		double dTime = nv->getFrameStamp()->getSimulationTime();
 		static double s_dStartTime = dTime;

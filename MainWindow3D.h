@@ -4,6 +4,7 @@
 #include <QtWidgets/QMainWindow>
 #include "plot.h"
 #include <QtCore/QProcess>
+class  QStackedWidget;
 
 class MainWindow3D : public QMainWindow
 {
@@ -13,7 +14,11 @@ public:
 	MainWindow3D(QWidget *parent = 0);
 	~MainWindow3D();
 
+	void show(bool bJPG);
+
 public slots:
+
+	void slotSetManipulatorSide();
 
 	void slotSetManipulatorAeroplane();
 
@@ -56,6 +61,8 @@ private:
 	Plot* m_pPlot;
 
 	QProcess* m_pProcess;
+
+	QStackedWidget* m_pStackedWidget;
 
 // private:
 // 	Ui::MainWindowClass ui;

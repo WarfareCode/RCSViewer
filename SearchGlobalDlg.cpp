@@ -14,7 +14,7 @@
 #include "DataManager.h"
 
 extern bool classFile2JsonObj(QString filePath, QJsonObject& object);
-void Show3DMainWindow();
+void Show3DMainWindow(bool);
 
 bool FindFile(const QString &path, QStringList& listClassFile)
 {
@@ -153,11 +153,14 @@ void SearchGlobalDlg::slotShow3D()
 	{
 		accept();
 
-		Show3DMainWindow();
-
 		QString strPlaneGPS, strTargetGPS, strRCS, strVideo;
 		dlg.getFilePath(strPlaneGPS, strTargetGPS, strRCS, strVideo);
-		//DataManager::Instance()->LoadDataAndDisplay("d:/c/airbornegps.gps", "d:/c/targetgps.dat", "d:/c/targetrcs.rcs");
+
+		bool bSAR = false;
+		if (strRCS.endsWith(".jpg", Qt::CaseInsensitive))
+			bSAR = true;
+
+		Show3DMainWindow(bSAR);
 		DataManager::Instance()->LoadDataAndDisplay(strPlaneGPS, strTargetGPS, strRCS, strVideo);
 	}
 }

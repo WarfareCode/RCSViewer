@@ -43,7 +43,8 @@ DisplayFileSelectDlg::DisplayFileSelectDlg(const QStringList& listFileTypeName, 
 			nTargetGPSIndex = i;
 		}
 
-		if (strField.contains("rcs", Qt::CaseInsensitive))
+		if (strField.contains("rcs", Qt::CaseInsensitive)
+			|| strField.contains("sar", Qt::CaseInsensitive))
 		{
 			nRCSIndex = i;
 		}

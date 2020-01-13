@@ -156,6 +156,23 @@ void SetNodeTrackerManipulator(int nNodeIndex = 0)
 	pManipulator->setMinimumDistance(0.002);
 }
 
+void SetSideManipulator(double dLeft, double dTop, double dRight, double dBottom, double dH)
+{
+	osg::Vec3d position((dRight + dLeft) * 0.5, dBottom - (dTop - dBottom), dH * 0.00001141 * 0.5);
+	osg::AnimationPath* animationPath = new osg::AnimationPath;
+	animationPath->setLoopMode(osg::AnimationPath::LOOP);
+
+	osg::Quat quat;
+	quat.makeRotate(osg::Vec3d(0.0, 0.0, -1.0), osg::Vec3d(0.0, 1.0, 0.0));
+	animationPath->insert(0.0, osg::AnimationPath::ControlPoint(position, quat));
+	animationPath->insert(3.0, osg::AnimationPath::ControlPoint(position, quat));
+
+	osgGA::AnimationPathManipulator *animationPathMp = new osgGA::AnimationPathManipulator();
+	animationPathMp->setAnimationPath(animationPath);
+
+	g_pView->setCameraManipulator(animationPathMp);
+}
+
 void SetAutoManipulator(double dLeft, double dTop, double dRight, double dBottom, double dH)
 {
 	osg::Vec3d position((dRight + dLeft) * 0.5, dBottom - (dTop - dBottom) , dH * 0.00001141 * 0.5);
@@ -233,7 +250,7 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 	QString strDir = QCoreApplication::applicationDirPath();
 	strDir += "/../data/";
 
-	pManager->LoadTargetObject(strDir + "102202.FBX");
+	pManager->LoadTargetObject(strDir + "chuan.FBX");
 	pManager->LoadAerocraft(strDir + "plane.FBX");
 
 	//添加多光源

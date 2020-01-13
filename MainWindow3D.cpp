@@ -20,15 +20,19 @@
 #include <QtWidgets/QMessageBox>
 #include "PlotRangeDlg.h"
 #include "PlotSettings.h"
+#include <QStackedWidget>
+#include "JPGWidget.h"
 
 extern osgViewer::View* g_pView;
 extern SamplingThread* g_pSampleThread;
 extern Plot* g_pPlot;
 extern VideoPlayer* g_pVideoPlayer;
+extern JPGWidget* g_pJPGWidget;
 
 void SetTerrainManipulator();
 void SetNodeTrackerManipulator(int nIndex = 0);
 void SetAutoManipulator(double, double, double, double, double);
+void SetSideManipulator(double, double, double, double, double);
 
 // class MyWidget : public QWidget
 // {
@@ -54,24 +58,29 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 	connect(pActionLoadObservedObj, SIGNAL(triggered()), this, SLOT(slotLoadObservedObj()));
 
 	QMenu* pMenuManipulator = menuBar()->addMenu(QString::fromLocal8Bit("视角模式"));
+	QAction* pActionSide = pMenuManipulator->addAction(QString::fromLocal8Bit("全景"));
 	QAction* pActionAero = pMenuManipulator->addAction(QString::fromLocal8Bit("飞行器"));
 	QAction* pActionTarget = pMenuManipulator->addAction(QString::fromLocal8Bit("目标"));
 	QAction* pActionTerrain = pMenuManipulator->addAction(QString::fromLocal8Bit("地面"));
 	QAction* pActionAuto = pMenuManipulator->addAction(QString::fromLocal8Bit("自动视角"));
 
+	pActionSide->setCheckable(true);
 	pActionAero->setCheckable(true);
 	pActionTarget->setCheckable(true);
 	pActionTerrain->setCheckable(true);
 	pActionAuto->setCheckable(true);
 
-	pActionAuto->setChecked(true);
+	pActionSide->setChecked(true);
 
 	QActionGroup* pActionGroup = new QActionGroup(pMenuManipulator);
+	pActionGroup->addAction(pActionSide);
 	pActionGroup->addAction(pActionAero);
 	pActionGroup->addAction(pActionTarget);
 	pActionGroup->addAction(pActionTerrain);
 	pActionGroup->addAction(pActionAuto);
 
+	
+	connect(pActionSide, SIGNAL(triggered()), this, SLOT(slotSetManipulatorSide()));
 	connect(pActionAero, SIGNAL(triggered()), this, SLOT(slotSetManipulatorAeroplane()));
 	connect(pActionTarget, SIGNAL(triggered()), this, SLOT(slotSetManipulatorTarget()));
 	connect(pActionTerrain, SIGNAL(triggered()), this, SLOT(slotSetManipulatorTerrain()));
@@ -151,7 +160,13 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 	addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, pDockWidget);
 	//pDockWidget->setFloating(true);
 
+	m_pStackedWidget = new QStackedWidget(this);
+	JPGWidget* pJPGWidget = new JPGWidget;
+	g_pJPGWidget = pJPGWidget;
+	m_pStackedWidget->addWidget(pJPGWidget);
+
 	m_pPlot = new Plot(this);
+	m_pStackedWidget->addWidget(m_pPlot);
 	g_pPlot = m_pPlot;
 
 	//加载曲线显示
@@ -160,7 +175,7 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 
 	QDockWidget* pDockWidget2 = new QDockWidget;
 	pDockWidget2->setWindowTitle("RCS");
-	pDockWidget2->setWidget(m_pPlot);
+	pDockWidget2->setWidget(m_pStackedWidget);
 	addDockWidget(Qt::DockWidgetArea::LeftDockWidgetArea, pDockWidget2);
 	//pDockWidget2->setFloating(true);
 }
@@ -168,6 +183,22 @@ MainWindow3D::MainWindow3D(QWidget *parent)
 MainWindow3D::~MainWindow3D()
 {
 
+}
+
+void MainWindow3D::show(bool bJPG)
+{
+	m_pStackedWidget->setCurrentIndex(!bJPG);
+	if (bJPG)
+	{
+		g_pJPGWidget->start();
+		g_pPlot->stop();
+	}
+	else
+	{
+		g_pJPGWidget->stop();
+		g_pPlot->start();
+	}
+	showMaximized();
 }
 
 void MainWindow3D::slotSetPara()
@@ -334,6 +365,16 @@ void MainWindow3D::slotCapture()
 	}
 }
 
+void MainWindow3D::slotSetManipulatorSide()
+{
+	QAction* pAction = qobject_cast<QAction*>(sender());
+	pAction->setChecked(true);
+
+	double dx1, dy1, dx2, dy2, dH;
+	DataManager::Instance()->GetPlanePathEnv(dx1, dy1, dx2, dy2, dH);
+	SetSideManipulator(dx1, dy2, dx2, dy1, dH);
+}
+
 void MainWindow3D::slotSetManipulatorAeroplane()
 {
 	QAction* pAction = qobject_cast<QAction*>(sender());
@@ -468,5 +509,5 @@ void MainWindow3D::slotReset()
 void MainWindow3D::slotPause()
 {
 	DataManager* pDataManager = DataManager::Instance();
-	pDataManager->PauseAnimation();
+	pDataManager->PauseAnimation(!pDataManager->IsPaused());
 }

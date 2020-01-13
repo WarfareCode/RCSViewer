@@ -97,6 +97,25 @@ public:
 	}
 
 	~MyPlotPicker(){}
+
+	//改为显示一位小数
+	QwtText trackerTextF(const QPointF &pos) const override
+	{
+		QString text;
+
+		switch (rubberBand())
+		{
+		case HLineRubberBand:
+			text.sprintf("%.1f", pos.y());
+			break;
+		case VLineRubberBand:
+			text.sprintf("%.1f", pos.x());
+			break;
+		default:
+			text.sprintf("%.1f, %.1f", pos.x(), pos.y());
+		}
+		return QwtText(text);
+	}
 };
 
 Plot::Plot(QWidget *parent) :
@@ -162,12 +181,12 @@ d_timerId(-1)
 
 	if (1)
 	{
-		auto picker = new QwtPlotPicker(canvas());
+		auto picker = new MyPlotPicker(canvas());
 		picker->setStateMachine(new QwtPickerDragPointMachine());
 		picker->setRubberBandPen(QColor(Qt::darkMagenta));
 		picker->setRubberBand(QwtPicker::CrossRubberBand);
 		picker->setTrackerMode(QwtPicker::AlwaysOn);//被激活时候显示
-		picker->setTrackerPen(QColor(Qt::black));//显示实时的坐标
+		picker->setTrackerPen(QColor(Qt::red));//显示实时的坐标
 
 		//QwtPlotPicker* picker = new QwtPlotPicker(QwtPlot::xBottom, 10,
 		//	QwtPlotPicker::CrossRubberBand, QwtPicker::AlwaysOn,
@@ -188,6 +207,11 @@ void Plot::start()
 {
 	//d_clock.start();
 	d_timerId = startTimer(100);
+}
+
+void Plot::stop()
+{
+	killTimer(d_timerId);
 }
 
 void Plot::replot()

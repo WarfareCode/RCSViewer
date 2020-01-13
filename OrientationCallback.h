@@ -13,6 +13,8 @@ public:
 	OrientationCallback();
 	~OrientationCallback();
 
+	void setPause(bool bPause);
+
 	void Clear()
 	{
 		m_pArray->clear();
@@ -21,6 +23,8 @@ public:
 	virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
 
 protected:
+
+	bool m_bPause;
 
 	double m_dLastTime;
 	double m_dLastTime2;

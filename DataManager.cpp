@@ -30,9 +30,11 @@
 #include "plot.h"
 #include "signaldata.h"
 #include "samplingthread.h"
+#include "JPGWidget.h"
 
 SamplingThread* g_pSampleThread = nullptr;
 Plot* g_pPlot = nullptr;
+JPGWidget* g_pJPGWidget = nullptr;
 VideoPlayer* g_pVideoPlayer = nullptr;
 DataManager* g_DataManager = nullptr;
 
@@ -41,7 +43,7 @@ QMutex g_MutexData;
 
 osgOcean::FFTOceanSurface* g_surface = nullptr;
 
-void SetAutoManipulator(double dLeft, double dTop, double dRight, double dBottom, double dH);
+void SetSideManipulator(double dLeft, double dTop, double dRight, double dBottom, double dH);
 
 bool gps_rcs_files_read_Ex(QString gpsfile,
 	QString targpsfile,
@@ -104,22 +106,16 @@ bool gps_rcs_files_read_Ex(QString gpsfile,
 void AddOcean(double dLon, double dLat, osg::Group* pParent)
 {
 	osgOcean::ShaderManager::instance().enableShaders(true);
-	// 		osg::ref_ptr<osgOcean::FFTOceanSurface> surface = new osgOcean::FFTOceanSurface(64, 256, 17
-	// 			, osg::Vec2(1.1f, 1.1f), 12, 10, 0.8, 1e-8, true, 2.5, 20.0, 256);
-
 	// 		osg::ref_ptr<osgOcean::FFTOceanSurface> surface = new osgOcean::FFTOceanSurface(/*64, 256, 17
 	// 			, osg::Vec2(1.1f, 1.1f), 12, 10, 0.8, 1e-8, true, 2.5, 1.0, 32*/);
 
 	if (g_surface == nullptr)
 	{
 		g_surface = new osgOcean::FFTOceanSurface(32);
-
 		g_surface->setWaveScaleFactor(5e-9f * 0.25);
 		// 		surface->setFoamBottomHeight(2.2);
 		// 		surface->setFoamTopHeight(3.0);
-		// 
 		g_surface->enableCrestFoam(true);
-
 		g_surface->setLightColor(osg::Vec4f(0.0, 0.0, 1.0, 1.0));
 	}
 
@@ -132,12 +128,6 @@ void AddOcean(double dLon, double dLat, osg::Group* pParent)
 	//可能缩放变换会造成光照结果过于明亮或暗淡，要在StateSet中允许法线的重缩放模式。
 	osg::StateSet* pStateSet = pTransform->getOrCreateStateSet();
 	pStateSet->setMode(GL_RESCALE_NORMAL, osg::StateAttribute::OVERRIDE);
-	
-	//osg::Depth* depth = new osg::Depth;
-	//depth->setFunction(osg::Depth::ALWAYS);
-	//depth->setRange(0.1, 1.0);
-	//pStateSet->setAttributeAndModes(depth, osg::StateAttribute::ON);
-	//pStateSet->setRenderBinDetails(-2, "RenderBin");
 
 	osg::LOD* pLOD = new osg::LOD;
 	pLOD->addChild(pTransform, 0, 0.8);
@@ -152,13 +142,11 @@ osg::AnimationPath* createLineAnimationPath(const osg::Vec3d& startPoint
 
 	animationPath->insert(0.0, osg::AnimationPath::ControlPoint(startPoint, osg::Quat(), scale));
 	animationPath->insert(time, osg::AnimationPath::ControlPoint(endPoint, osg::Quat(), scale));
-
 	return animationPath;
 }
 
 osg::AnimationPath* createCircleAnimationPath(const osg::Vec3d& center, const osg::Vec3d& scale, double radius, double looptime)
 {
-	// set up the animation path
 	osg::AnimationPath* animationPath = new osg::AnimationPath;
 	animationPath->setLoopMode(osg::AnimationPath::LOOP);
 
@@ -177,7 +165,6 @@ osg::AnimationPath* createCircleAnimationPath(const osg::Vec3d& center, const os
 
 		yaw += yaw_delta;
 		time += time_delta;
-
 	}
 	return animationPath;
 }
@@ -185,7 +172,6 @@ osg::AnimationPath* createCircleAnimationPath(const osg::Vec3d& center, const os
 osg::AnimationPath* createPlaneAnimationPath(const QString& strPlaneGPS, const osg::Vec3d& scale, double looptime)
 {
 	QFile file(strPlaneGPS);
-
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 		return 0;
 
@@ -198,7 +184,8 @@ osg::AnimationPath* createPlaneAnimationPath(const QString& strPlaneGPS, const o
 	QTime timeStart;
 
 	int nCount = 0;
-	while (!file.atEnd()) {
+	while (!file.atEnd()) 
+	{
 		QByteArray line = file.readLine();
 
 		nCount = nCount % 100;
@@ -215,7 +202,6 @@ osg::AnimationPath* createPlaneAnimationPath(const QString& strPlaneGPS, const o
 		nCount++;
 	}
 
-	// set up the animation path
 	osg::AnimationPath* animationPath = new osg::AnimationPath;
 	animationPath->setLoopMode(osg::AnimationPath::LOOP);
 
@@ -232,12 +218,10 @@ osg::AnimationPath* createPlaneAnimationPath(const QString& strPlaneGPS, const o
 		{
 			osg::Vec3 vec0(1.0, 0.0, 0.0);
 			osg::Vec3 vec1(vecLon[i + 1] - vecLon[i - 1], vecLat[i + 1] - vecLat[i - 1], 0.0);
-
 			quat.makeRotate(vec0, vec1);
 		}
 
 		animationPath->insert(dTime, osg::AnimationPath::ControlPoint(position, quat, scale));
-
 		dTime += dTimeStep;
 	}
 
@@ -247,13 +231,13 @@ osg::AnimationPath* createPlaneAnimationPath(const QString& strPlaneGPS, const o
 osg::AnimationPath* createTargetAnimationPath(const QString& strTargetGPS, const osg::Vec3d& scale, double looptime)
 {
 	QFile file(strTargetGPS);
-
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 		return 0;
 
 	QVector<QPair<double, double>> vecPos;
 
-	while (!file.atEnd()) {
+	while (!file.atEnd())
+	{
 		QByteArray line = file.readLine();
 		QString strLine = line;
 
@@ -264,7 +248,6 @@ osg::AnimationPath* createTargetAnimationPath(const QString& strTargetGPS, const
 		vecPos.push_back(qMakePair(dLon, dLat));
 	}
 
-	// set up the animation path
 	osg::AnimationPath* animationPath = new osg::AnimationPath;
 	animationPath->setLoopMode(osg::AnimationPath::LOOP);
 
@@ -299,7 +282,7 @@ DataManager::DataManager()
 {
 	m_pRoot = new osg::Group;
 	osg::StateSet* pStateSet = m_pRoot->getOrCreateStateSet();
-	//pStateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+	m_bPause = false;
 
 	m_pAerocraftNode = nullptr;
 	m_pTargetNode = nullptr;
@@ -328,17 +311,15 @@ DataManager::DataManager()
 
 	m_pAerocraftAnimationNode->setPosition(osg::Vec3d(121, 22.0, 0.1));
 	m_pAerocraftAnimationNode->setScale(osg::Vec3(m_dScale, m_dScale, m_dScale));
-
 	m_pAerocraftAnimationNode->addChild(m_pAerocraftLocalMatrixNode);
 
 	osg::Vec3d scale(m_dScale, m_dScale, m_dScale);
-
 	m_pRoot->addChild(m_pAerocraftAnimationNode);
 
 	m_dTargetRotateX = -90.0;
 	m_dTargetRotateY = 180.0;
 	m_dTargetRotateZ = 270.0;
-	m_dTargetScale = 0.00001;
+	m_dTargetScale = 0.0000015;
 
 	m_pTargetLocalMatrixNode = new osg::MatrixTransform;
 	m_pTargetAnimationNode = new osg::PositionAttitudeTransform;
@@ -400,8 +381,6 @@ void DataManager::GetPlanePathEnv(double& dx1, double& dy1, double& dx2, double&
 	dH = m_dH;
 }
 
-#include <QtGui/QPainter>
-
 bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QString rcsfile, QString video)
 {
 	double angle = 0.0;
@@ -410,6 +389,10 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 
 	if (!gps_rcs_files_read_Ex(gpsfile, targpsfile, rcsfile, vecData, timeStart, angle))
 		return false;
+
+	bool bSAR = false;
+	if (rcsfile.endsWith(".jpg", Qt::CaseInsensitive))
+		bSAR = true;
 
 	int nCount = vecData.size();
 	double dIncre = (vecData[nCount - 1].dTime - vecData[0].dTime) / (nCount - 1);
@@ -426,14 +409,6 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 
 		double dTimeFirst = vecData[0].dTime;
 
-// 		QImage image(800, 600, QImage::Format_RGB32);
-// 		image.fill(Qt::white);
-// 		QPainter painter(&image);
-// 		painter.setPen(Qt::red);
-// 
-// 		QPointF* pPoints = new QPointF[vecData.size()];
-// 		int i = 0;
-
 		for (auto& dataUint : vecData)
 		{
 			RCSRecord record;
@@ -442,16 +417,7 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 			record.RCS_dB = dataUint.RCS_dB;
 
 			g_vecRCSRecord.push_back(record);
-
-// 			pPoints[i].setX(dataUint.angle * 2.0);
-// 			pPoints[i].setY(dataUint.RCS_dB *8.0);
-// 			i++;
 		}
-
-// 		painter.drawPolyline(pPoints, vecData.size());
-// 		delete pPoints;
-// 		pPoints = nullptr;
-// 		image.save("d:/rcs_test.png");
 	}
 
 	int nTemp = 0;
@@ -570,23 +536,33 @@ bool DataManager::LoadDataAndDisplay(QString gpsfile, QString targpsfile, QStrin
 		if (g_pSampleThread->isRunning())
 		{
 			g_pSampleThread->Cancel();
-			//g_pSampleThread->wait(1000);
 		}
 
 		delete g_pSampleThread;
 		g_pSampleThread = nullptr;
 	}
 
-	g_pSampleThread = new SamplingThread;
-	g_pSampleThread->setFrequency(0.05);
-	g_pSampleThread->setAmplitude(40);
-	g_pSampleThread->setInterval(100);
-	g_pSampleThread->start();
+	g_pPlot->stop();
+	g_pJPGWidget->stop();
 
-	g_pPlot->start();
-	g_pPlot->replot();
+	if (!bSAR)
+	{
+		g_pSampleThread = new SamplingThread;
+		g_pSampleThread->setFrequency(0.05);
+		g_pSampleThread->setAmplitude(40);
+		g_pSampleThread->setInterval(100);
+		g_pSampleThread->start();
 
-	SetAutoManipulator(m_dLeft, m_dTop, m_dRight, m_dBottom, m_dH);
+		g_pPlot->start();
+		g_pPlot->replot();
+	}
+	else
+	{
+		g_pJPGWidget->loadJPG(rcsfile);
+		g_pJPGWidget->start();
+	}
+
+	SetSideManipulator(m_dLeft, m_dTop, m_dRight, m_dBottom, m_dH);
 
 	ClearPlanePathLine();
 	ResetAnimationPath();
@@ -640,14 +616,6 @@ void DataManager::LoadTerrain()
 		pChinaTransform->setMatrix(osg::Matrix::translate(osg::Vec3d(0.0, 0.0, -0.0025)));
 		pChinaTransform->addChild(pNodeChina);
 		pTerrainGroup->addChild(pChinaTransform);
-
-		//osg::Depth* depth = new osg::Depth;
-		//depth->setFunction(osg::Depth::ALWAYS);
-		//depth->setRange(1.0, 1.0);
-		//osg::StateSet * pStateSet = pNode->getOrCreateStateSet();
-		//pStateSet->setAttributeAndModes(depth, osg::StateAttribute::ON);
-		//pStateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
-		//pStateSet->setRenderBinDetails(-2, "RenderBin");
 		
 		osg::Node* pNode = nullptr;
 		//pNode = osgDB::readNodeFile("D:/ive_google/sanya16.ive");
@@ -667,9 +635,6 @@ void DataManager::LoadTerrain()
 			ss->setMode(GL_BLEND, osg::StateAttribute::ON);
 			ss->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 		}
-
-		//pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/west.ive"));
-		//pTerrainGroup->addChild(osgDB::readNodeFile("D:/rcsmodel/east_little.ive"));
 		
 		//pNode = osgDB::readNodeFile("D:/ive_google/huludao16.ive");
 		pNode = osgDB::readNodeFile(Path("huludao16.ive"));
@@ -701,16 +666,6 @@ void DataManager::LoadTerrain()
 		//pNode = osgDB::readNodeFile("D:/rcsmodel/dunhuang.ive");
 		pNode = osgDB::readNodeFile(Path("dunhuang.ive"));
 		osg::StateSet* stateset = pNode->getOrCreateStateSet();
-		//osg::Depth* depth = new osg::Depth;
-		//depth->setFunction(osg::Depth::ALWAYS);
-		//depth->setRange(0.0, 0.9);
-
-		//stateset->setAttributeAndModes(depth, osg::StateAttribute::ON);
-		//stateset->setRenderBinDetails(-1, "RenderBin");
-
-		//stateset->setAttributeAndModes(new osg::PolygonOffset(-1.0f, -1.0f), osg::StateAttribute::ON);
-		// 		stateset->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-		// 		stateset->setRenderBinDetails(11, "RenderBin");
 		pTerrainGroup->addChild(pNode);
 
 		//pNode = osgDB::readNodeFile("D:/rcsmodel/dunhuang(mubiaoqu).ive");
@@ -829,18 +784,6 @@ void DataManager::SetAerocraftScale(double dScale)
 			}
 		}
 	}
-
-// 	osg::AnimationPath* animationPath = nullptr;
-// 	if (m_ePlanePathType == PathType_Circle)
-// 	{
-// 		animationPath = createCircleAnimationPath(m_circleCenter, scale, m_dCircleRadius, m_dCircleTime);
-// 	}
-// 	else if (m_ePlanePathType == PathType_Line)
-// 	{
-// 		animationPath = createLineAnimationPath(m_lineStartPoint, m_lineEndPoint, scale, m_dLineTime);
-// 	}
-// 
-// 	m_pAerocraftAnimationNode->setUpdateCallback(new osg::AnimationPathCallback(animationPath, 0.0, 1.0));
 }
 
 double DataManager::GetAerocraftScale()
@@ -851,7 +794,6 @@ double DataManager::GetAerocraftScale()
 osg::Node* DataManager::GetRadarBeamNode()
 {
 	return m_pRadarBeamLocalMatrixNode;
-	//return m_pRadarBeamNode;
 }
 
 osg::Node* DataManager::GetAerocraftNode()
@@ -1064,18 +1006,33 @@ void DataManager::ResetAnimationPath()
 	pAnimationCallback->reset();
 }
 
-void DataManager::PauseAnimation()
+void DataManager::PauseAnimation(bool bPause)
 {
-	static bool bTag = 0;
-	bTag = !bTag;
+	m_bPause = bPause;
 
 	osg::Callback* pCallback = m_pAerocraftAnimationNode->getUpdateCallback();
 	osg::AnimationPathCallback* pAnimationCallback = dynamic_cast<osg::AnimationPathCallback*>(pCallback);
-	pAnimationCallback->setPause(bTag);
+
+	if (pAnimationCallback)
+		pAnimationCallback->setPause(m_bPause);
 
 	pCallback = m_pTargetAnimationNode->getUpdateCallback();
 	pAnimationCallback = dynamic_cast<osg::AnimationPathCallback*>(pCallback);
-	pAnimationCallback->setPause(bTag);
+
+	if (pAnimationCallback)
+		pAnimationCallback->setPause(m_bPause);
+
+	//光束也暂停
+	OrientationCallback* pOrientationCallback = dynamic_cast<OrientationCallback*>(m_pRadarBeamLocalMatrixNode->getUpdateCallback());
+
+	if (pOrientationCallback)
+		pOrientationCallback->setPause(m_bPause);
+
+	//视频播放停止
+	g_pVideoPlayer->setPause(m_bPause);
+
+	//SAR图像窗口停止
+	g_pJPGWidget->setPause(m_bPause);
 }
 
 void DataManager::LoadRadarBeam(const QString& strFile)

@@ -123,3 +123,8 @@ gps_rcs_files_read - 副本.h
 GeneratedFiles/ui_SearchGlobalDlg.h
 GeneratedFiles/Debug/moc_SearchGlobalDlg.cpp
 GeneratedFiles/Release/moc_SearchGlobalDlg.cpp
+GeneratedFiles/ui_JPGWidget.h
+GeneratedFiles/Release/moc_JPGWidget.cpp
+GeneratedFiles/Debug/moc_JPGWidget.cpp
+Debug/RCSViewer.res
+Debug/RCSViewer.res

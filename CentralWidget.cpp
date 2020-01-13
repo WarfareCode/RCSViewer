@@ -16,10 +16,11 @@
 #include "MySqlTableModel.h"
 #include <QMessageBox>
 
-void Show3DMainWindow()
+void Show3DMainWindow(bool bJPG)
 {
 	static MainWindow3D* pMainwindow3D = new MainWindow3D;
-	pMainwindow3D->showMaximized();
+	pMainwindow3D->show(bJPG);
+	DataManager::Instance()->PauseAnimation(false);
 }
 
 CentralWidget::CentralWidget(QWidget *parent)
@@ -158,10 +159,15 @@ void CentralWidget::slot3DView()
 	DisplayFileSelectDlg dlg(listFileFieldName, listFilePath);
 	if (dlg.exec())
 	{
-		Show3DMainWindow();
-
 		QString strPlaneGPS, strTargetGPS, strRCS, strVideo;
 		dlg.getFilePath(strPlaneGPS, strTargetGPS, strRCS, strVideo);
+
+		bool bSAR = false;
+		if (strRCS.endsWith(".jpg", Qt::CaseInsensitive))
+			bSAR = true;
+
+		Show3DMainWindow(bSAR);
+
 		//DataManager::Instance()->LoadDataAndDisplay("d:/c/airbornegps.gps", "d:/c/targetgps.dat", "d:/c/targetrcs.rcs");
 		DataManager::Instance()->LoadDataAndDisplay(strPlaneGPS, strTargetGPS, strRCS, strVideo);
 	}

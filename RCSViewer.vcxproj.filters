@@ -341,6 +341,15 @@
     <ClCompile Include="PlotSettings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="JPGWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_JPGWidget.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_JPGWidget.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.ui">
@@ -502,6 +511,12 @@
     <CustomBuild Include="SearchGlobalDlg.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="JPGWidget.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="JPGWidget.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_MainWindow.h">
@@ -624,13 +639,8 @@
     <ClInclude Include="PlotSettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="RCSViewer.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="C:\Users\Administrator\Desktop\RCS相关\find.png" />
-    <Image Include="icon1.ico" />
-    <Image Include="icon2.ico" />
+    <ClInclude Include="GeneratedFiles\ui_JPGWidget.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

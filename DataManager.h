@@ -95,7 +95,12 @@ public:
 	//充值动画位置
 	void ResetAnimationPath();
 
-	void PauseAnimation();
+	void PauseAnimation(bool bPause);
+
+	bool IsPaused()
+	{
+		return m_bPause;
+	}
 
 	//设置录屏文件的保存路径。
 	void SetScreenCaptureFilePath(QString& strPath){ m_strScreenCaptureFilePath = strPath; }
@@ -181,6 +186,8 @@ protected:
 	double m_dRight;
 	double m_dBottom;
 	double m_dH;
+
+	bool m_bPause;
 
 	DataManager();
 	virtual ~DataManager();

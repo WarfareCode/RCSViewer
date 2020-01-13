@@ -303,44 +303,48 @@ bool  gps_rcs_files_read(QString gpsfile,
 		return false;
 	}
 
-	// 读取RCS文件，获取总点数
-	std::ifstream fin2(rcsfile.toLocal8Bit().data(), std::ios::in);
+	bool bSAR = false;
 	long rcs_points = 0;
-
-    double RCS_max=-9999.0;
-    double RCS_max_angle=0;
-	while (fin2.getline(line, sizeof(line))) 
+	double RCS_max = -9999.0;
+	double RCS_max_angle = 0;
+	if (rcsfile.endsWith(".jpg", Qt::CaseInsensitive))
+		bSAR = true;
+	
+	if (!bSAR)
 	{
-		QString cmd = QString("%1").arg(line);
-		if (cmd.isEmpty())continue;
-		QStringList list;
-		list = cmd.split(QRegExp("\\s+"), QString::SkipEmptyParts);
-        RCS_raw[rcs_points] = list.at(1).toDouble();
+		// 读取RCS文件，获取总点数
+		std::ifstream fin2(rcsfile.toLocal8Bit().data(), std::ios::in);
 
-        RCS_raw_angle[rcs_points]=list.at(0).toDouble();
+		while (fin2.getline(line, sizeof(line)))
+		{
+			QString cmd = QString("%1").arg(line);
+			if (cmd.isEmpty())continue;
+			QStringList list;
+			list = cmd.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+			RCS_raw[rcs_points] = list.at(1).toDouble();
 
-
-        if(RCS_max<RCS_raw[rcs_points])
-        {
-            RCS_max=RCS_raw[rcs_points];
-            RCS_max_angle=RCS_raw_angle[rcs_points];
-        }
+			RCS_raw_angle[rcs_points] = list.at(0).toDouble();
 
 
+			if (RCS_max < RCS_raw[rcs_points])
+			{
+				RCS_max = RCS_raw[rcs_points];
+				RCS_max_angle = RCS_raw_angle[rcs_points];
+			}
 
+			if (rcs_points >= MAX_RCS_POINTS) break;
+			rcs_points++;
+		}
+		fin2.close();
 
-
-		if (rcs_points >= MAX_RCS_POINTS) break;
-
-		rcs_points++;
+		if (rcs_points <= 0)
+		{
+			//QMessageBox::critical(this, tr("错误"), tr("无法从RCS文件读取数据！"));
+			return false;
+		}
 	}
-	fin2.close();
 
-	if (rcs_points <= 0)
-	{
-		//QMessageBox::critical(this, tr("错误"), tr("无法从RCS文件读取数据！"));
-		return false;
-	}
+
 
 	// all above is ok
 	// 插值tar_points,plat_gps_point,rcs_points个点数
@@ -465,9 +469,16 @@ bool  gps_rcs_files_read(QString gpsfile,
 
 
 		dataunit_temp.angle = azAngle[k];
-        RCS_index=FindAngleIndex(RCS_raw_angle,dataunit_temp.angle ,rcs_points);
-        dataunit_temp.RCS_dB = RCS_raw[RCS_index];
 
+		if (!bSAR)
+		{
+			RCS_index = FindAngleIndex(RCS_raw_angle, dataunit_temp.angle, rcs_points);
+			dataunit_temp.RCS_dB = RCS_raw[RCS_index];
+		}
+		else
+		{
+			dataunit_temp.RCS_dB = 0.0;
+		}
 
 		dataunit_temp.plane_lon = plane_logn_intp[k];
 		dataunit_temp.plane_lat = plane_lati_intp[k];
@@ -663,47 +674,42 @@ bool gps_rcs_files_read_single(QString gpsfile,
 	long plat_end_sec = 0;
 	plat_end_sec = list_e.at(2).toLong() + list_e.at(1).toLong() * 60 + list_e.at(0).toLong() * 3600;;
 
-
-	// 读取RCS文件，获取总点数
-	std::ifstream fin2(rcsfile.toLocal8Bit().data(), std::ios::in);
+	bool bSAR = false;
 	long rcs_points = 0;
+	double RCS_max = -9999.0;
+	double RCS_max_angle = 0;
+	if (rcsfile.endsWith(".jpg", Qt::CaseInsensitive))
+		bSAR = true;
 
-    double RCS_max=-9999.0;
-    double RCS_max_angle=0;
-	while (fin2.getline(line, sizeof(line))) 
+	if (!bSAR)
 	{
-		QString cmd = QString("%1").arg(line);
-		if (cmd.isEmpty())continue;
-		QStringList list;
-		list = cmd.split(QRegExp("\\s+"), QString::SkipEmptyParts);
-        RCS_raw[rcs_points] = list.at(1).toDouble();
-        RCS_angle[rcs_points]=list.at(0).toDouble();
-        if(RCS_raw[rcs_points]>RCS_max)
-        {
-            RCS_max=RCS_raw[rcs_points];
-            RCS_max_angle= RCS_angle[rcs_points];
+		// 读取RCS文件，获取总点数
+		std::ifstream fin2(rcsfile.toLocal8Bit().data(), std::ios::in);
+		
+		while (fin2.getline(line, sizeof(line)))
+		{
+			QString cmd = QString("%1").arg(line);
+			if (cmd.isEmpty())continue;
+			QStringList list;
+			list = cmd.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+			RCS_raw[rcs_points] = list.at(1).toDouble();
+			RCS_angle[rcs_points] = list.at(0).toDouble();
+			if (RCS_raw[rcs_points] > RCS_max)
+			{
+				RCS_max = RCS_raw[rcs_points];
+				RCS_max_angle = RCS_angle[rcs_points];
+			}
 
-        }
+			if (rcs_points >= MAX_RCS_POINTS) break;
+			rcs_points++;
+		}
 
-
-
-
-		if (rcs_points >= MAX_RCS_POINTS) break;
-                rcs_points++;
-
-	}
-
-
-
-
-
-
-	fin2.close();
-
-	if (rcs_points <= 0)
-	{
-		//QMessageBox::critical(this, tr("错误"), tr("无法从RCS文件读取数据！"));
-		return false;
+		fin2.close();
+		if (rcs_points <= 0)
+		{
+			//QMessageBox::critical(this, tr("错误"), tr("无法从RCS文件读取数据！"));
+			return false;
+		}
 	}
 
 	// all above is ok
@@ -770,8 +776,15 @@ for(int k=0;k<N;k++)
 		while (azAngle[k] > 360) { azAngle[k] -= 360; } // 添加2017/3/25;
 
 		dataunit_temp.angle = azAngle[k];
-        RCS_index=FindAngleIndex(RCS_angle,dataunit_temp.angle ,rcs_points);
-        dataunit_temp.RCS_dB = RCS_raw[RCS_index];
+		if (bSAR)
+		{
+			dataunit_temp.RCS_dB = 0.0;
+		}
+		else
+		{
+			RCS_index = FindAngleIndex(RCS_angle, dataunit_temp.angle, rcs_points);
+			dataunit_temp.RCS_dB = RCS_raw[RCS_index];
+		}
 
 		dataunit_temp.plane_lon = plane_logn_intp[k];
 		dataunit_temp.plane_lat = plane_lati_intp[k];

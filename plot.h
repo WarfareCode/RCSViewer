@@ -18,6 +18,7 @@ public:
     virtual ~Plot();
 
     void start();
+	void stop();
     virtual void replot() QWT_OVERRIDE;
 
     virtual bool eventFilter( QObject *, QEvent * ) QWT_OVERRIDE;

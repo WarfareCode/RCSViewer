@@ -122,6 +122,18 @@ void VideoPlayer::play()
     }
 }
 
+void VideoPlayer::setPause(bool bPause)
+{
+	if (bPause)
+	{
+		mediaPlayer.pause();
+	}
+	else
+	{
+		mediaPlayer.play();
+	}
+}
+
 void VideoPlayer::setFileAndPlay(QString strFile)
 {
 	if (strFile.isEmpty())
