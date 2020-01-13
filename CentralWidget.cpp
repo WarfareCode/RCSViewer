@@ -167,8 +167,6 @@ void CentralWidget::slot3DView()
 			bSAR = true;
 
 		Show3DMainWindow(bSAR);
-
-		//DataManager::Instance()->LoadDataAndDisplay("d:/c/airbornegps.gps", "d:/c/targetgps.dat", "d:/c/targetrcs.rcs");
 		DataManager::Instance()->LoadDataAndDisplay(strPlaneGPS, strTargetGPS, strRCS, strVideo);
 	}
 }
