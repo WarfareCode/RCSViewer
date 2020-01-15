@@ -34,7 +34,7 @@ public:
 
 	bool LoadDataAndDisplay(QString gpsfile, QString targpsfile, QString rcsfile, QString video);
 
-	void LoadAerocraft(const QString& strFile);
+	bool LoadAerocraft(const QString& strFile);
 
 	void SetAerocraftRotate(float x, float y, float z);
 
@@ -44,7 +44,7 @@ public:
 
 	double GetAerocraftScale();
 
-	void LoadTargetObject(const QString& strFile);
+	bool LoadTargetObject(const QString& strFile);
 
 	//º”‘ÿ¿◊¥Ô≤®
 	void LoadRadarBeam(const QString& strFile);

@@ -715,9 +715,11 @@ void DataManager::LoadTerrain()
 	}
 }
 
-void DataManager::LoadAerocraft(const QString& strFile)
+bool DataManager::LoadAerocraft(const QString& strFile)
 {
 	m_pAerocraftNode = osgDB::readNodeFile(strFile.toLocal8Bit().data()/*"su27.IVE"*/);
+	if (m_pAerocraftNode == nullptr)
+		return false;
 
 	osgUtil::Optimizer optimzer;
 	optimzer.optimize(m_pAerocraftNode);
@@ -732,6 +734,7 @@ void DataManager::LoadAerocraft(const QString& strFile)
 	m_pAerocraftLocalMatrixNode->addChild(m_pAerocraftNode);
 
 	LoadRadarBeam("");
+	return true;
 }
 
 void DataManager::SetAerocraftRotate(float x, float y, float z)
@@ -931,9 +934,12 @@ void DataManager::SetTargetPara(const osg::Vec3d& vecPos, double dRotateX
 	}
 }
 
-void DataManager::LoadTargetObject(const QString& strFile)
+bool DataManager::LoadTargetObject(const QString& strFile)
 {
 	m_pTargetNode = osgDB::readNodeFile(strFile.toLocal8Bit().data());
+
+	if (m_pTargetNode == nullptr)
+		return false;
 
 	osgUtil::Optimizer optimzer;
 	optimzer.optimize(m_pTargetNode);
@@ -947,6 +953,7 @@ void DataManager::LoadTargetObject(const QString& strFile)
 
 	m_pTargetLocalMatrixNode->addChild(m_pTargetNode);
 
+	return true;
 }
 
 osg::Node* createClock()

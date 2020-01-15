@@ -187,6 +187,10 @@ d_timerId(-1)
 		picker->setRubberBand(QwtPicker::CrossRubberBand);
 		picker->setTrackerMode(QwtPicker::AlwaysOn);//被激活时候显示
 		picker->setTrackerPen(QColor(Qt::red));//显示实时的坐标
+		QFont font = picker->trackerFont();
+		font.setPixelSize(24);
+		font.setBold(true);
+		picker->setTrackerFont(font);
 
 		//QwtPlotPicker* picker = new QwtPlotPicker(QwtPlot::xBottom, 10,
 		//	QwtPlotPicker::CrossRubberBand, QwtPicker::AlwaysOn,

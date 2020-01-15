@@ -7,7 +7,7 @@ JPGWidget::JPGWidget(QWidget *parent)
 {
 	m_pixmap = nullptr;
 	m_dCurPencent = 0.0;
-	m_dIncreConst = 0.02;
+	m_dIncreConst = 0.005;
 
 	m_dIncre = m_dIncreConst;
 }
@@ -99,8 +99,8 @@ void JPGWidget::paintEvent(QPaintEvent *)
 	double dx1 = rect().center().rx();
 	double dy1 = rect().center().ry();
 
-	QRectF recTarget(dx1 - nSrcWid * 0.5 * dScale, dy1 - nSrcHei * 0.5 * dScale, nSrcWid * dScale, nSrcHei * dScale * m_dCurPencent);
-	QRectF recSource(0.0, 0.0, nSrcWid, nSrcHei * m_dCurPencent);
+	QRectF recTarget(dx1 - nSrcWid * 0.5 * dScale, dy1 - nSrcHei * 0.5 * dScale, nSrcWid * dScale * m_dCurPencent, nSrcHei * dScale);
+	QRectF recSource(0.0, 0.0, nSrcWid * m_dCurPencent, nSrcHei);
 
 	QPainter painter(this);
 	painter.drawPixmap(recTarget, *m_pixmap, recSource);

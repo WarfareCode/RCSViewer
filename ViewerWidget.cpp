@@ -11,6 +11,7 @@
 #include <osg/Depth>
 #include <gps_rcs_files_read.h>
 #include "AutoSwitchMatrixManipulator.h"
+#include <QMessageBox>
 
 #include "Scene.h"
 
@@ -250,7 +251,10 @@ ViewerWidget::ViewerWidget(osgViewer::ViewerBase::ThreadingModel threadingModel)
 	QString strDir = QCoreApplication::applicationDirPath();
 	strDir += "/../data/";
 
-	pManager->LoadTargetObject(strDir + "chuan.FBX");
+	if (!pManager->LoadTargetObject(strDir + "chuan.FBX"))
+	{
+		QMessageBox::information(this, QString::fromLocal8Bit("提示"), QString::fromLocal8Bit("模型加载失败：") + strDir + "chuan.FBX");
+	}
 	pManager->LoadAerocraft(strDir + "plane.FBX");
 
 	//添加多光源
